@@ -29,8 +29,8 @@ public class PokemonList {
         }
     }
 
-    public static void addPokemon(String pokemon) {
-
+    public static void addPokemon(int id, String pokemon) {
+        pokemonList.add(id, pokemon);
     }
 
 
