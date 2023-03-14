@@ -27,6 +27,13 @@ ArrayList<SearchString> searchStrings = new ArrayList<>();
         addButton = new Button("Auswählen", new Color(0x767676), Color.WHITE, 0, 0, 200, 100);
         mainPanel.add(addButton);
 
+        DefaultListModel<String> model = new DefaultListModel<>();
+        JList<String> list = new JList<>(model);
+
+        for(int i = 0; i < searchStrings.size(); i++){
+            model.addElement(searchStrings.get(i).getTitle());
+        }
+
 
 
 
