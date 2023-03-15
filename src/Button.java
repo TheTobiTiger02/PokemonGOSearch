@@ -72,7 +72,7 @@ public class Button extends JButton implements MouseListener {
         if(e.getSource() == UI.addButton){
             //UI.frame.getContentPane().add(UI.addPanel);
 
-            UI.mainPanel.setVisible(false);
+            UI.mainListPanel.setVisible(false);
             UI.addPanel.setVisible(true);
             //UI.addPanel.setVisible(true);
 
