@@ -70,29 +70,20 @@ public class Button extends JButton implements MouseListener {
     public void mousePressed(MouseEvent e) {
 
         if(e.getSource() == UI.addButton){
-            //UI.frame.getContentPane().add(UI.addPanel);
-
-            UI.mainListPanel.setVisible(false);
-            UI.addPanel.setVisible(true);
-            //UI.addPanel.setVisible(true);
-
-            //UI.testPanel.setVisible(true);
-
-
-
-            //JPanel panel = new JPanel(new BorderLayout());
-            //panel.add(searchField, BorderLayout.NORTH);
-            //panel.add(scrollPane, BorderLayout.CENTER);
-            //panel.setVisible(true);
-
-            //UI.frame.add(panel);
-
+            UI.titleLabel.setText("Wähle alle Pokemon aus, die zur Suche hinzugefügt werden sollen");
+            UI.showPokemonScreen();
+        }
+        if(e.getSource() == UI.editButton){
+            int index = UI.searchStringList.getSelectedIndex();
+            System.out.println(index);
 
         }
-
-
-
-
+        if(e.getSource() == UI.pokemonButton){
+            UI.showPokemonScreen();
+        }
+        if(e.getSource() == UI.backButton){
+            UI.showMainScreen();
+        }
     }
 
     @Override

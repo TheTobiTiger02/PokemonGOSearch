@@ -11,10 +11,13 @@ import java.util.ArrayList;
 public class UI {
 
 static Frame frame;
-static Panel mainListPanel, mainButtonPanel, addPanel;
-static Button addButton;
+static JLabel titleLabel;
+static Panel mainListPanel, mainButtonPanel, pokemonPanel, backPanel, titlePanel;
+static Button addButton,editButton, pokemonButton, backButton;
+static DefaultListModel<String> searchModel, pokemonModel;
+static JList<String> searchStringList, pokemonJList;
 
-ArrayList<String> searchStrings = new ArrayList<>();
+ArrayList<SearchString> searchStrings = new ArrayList<>();
 
 
 
@@ -22,115 +25,31 @@ ArrayList<String> searchStrings = new ArrayList<>();
 
     public UI() {
         new PokemonList();
-        searchStrings.add("Test");
-        searchStrings.add("Test");
-        searchStrings.add("Test");
-        searchStrings.add("Test");
-        searchStrings.add("Test");
-        searchStrings.add("Test");
-        searchStrings.add("Test");
-        searchStrings.add("Test");
-        searchStrings.add("Test");
-        searchStrings.add("Test");
-        searchStrings.add("Test");
-        searchStrings.add("Test");
-        searchStrings.add("Test");
-        searchStrings.add("Test");
-        searchStrings.add("Test");
-        searchStrings.add("Test");
-        searchStrings.add("Test");
-        searchStrings.add("Test");
-        searchStrings.add("Test");
-        searchStrings.add("Test");
-        searchStrings.add("Test");
-        searchStrings.add("Test");
-        searchStrings.add("Test");
-        searchStrings.add("Test");
-        searchStrings.add("Test");
-        searchStrings.add("Test");
-        searchStrings.add("Test");
-        searchStrings.add("Test");
-        searchStrings.add("Test");
-        searchStrings.add("Test");
-        searchStrings.add("Test");
-        searchStrings.add("Test");
-        searchStrings.add("Test");
-        searchStrings.add("Test");
-        searchStrings.add("Test");
-        searchStrings.add("Test");
-        searchStrings.add("Test");
-        searchStrings.add("Test");
-        searchStrings.add("Test");
-        searchStrings.add("Test");
-        searchStrings.add("Test");
-        searchStrings.add("Test");
-        searchStrings.add("Test");
-        searchStrings.add("Test");
-        searchStrings.add("Test");
-        searchStrings.add("Test");
-        searchStrings.add("Test");
-        searchStrings.add("Test");
-        searchStrings.add("Test");
-        searchStrings.add("Test");
-        searchStrings.add("Test");
-        searchStrings.add("Test");
-        searchStrings.add("Test");
-        searchStrings.add("Test");
-        searchStrings.add("Test");
-        searchStrings.add("Test");
-        searchStrings.add("Test");
-        searchStrings.add("Test");
-        searchStrings.add("Test");
-        searchStrings.add("Test");
-        searchStrings.add("Test");
-        searchStrings.add("Test");
-        searchStrings.add("Test");
-        searchStrings.add("Test");
-        searchStrings.add("Test");
-        searchStrings.add("Test");
-        searchStrings.add("Test");
-        searchStrings.add("Test");
-        searchStrings.add("Test");
-        searchStrings.add("Test");
-        searchStrings.add("Test");
-        searchStrings.add("Test");searchStrings.add("Test");
-        searchStrings.add("Test");
-        searchStrings.add("Test");
-        searchStrings.add("Test");
-        searchStrings.add("Test");
-        searchStrings.add("Test");
-        searchStrings.add("Test");
-        searchStrings.add("Test");searchStrings.add("Test");
-        searchStrings.add("Test");
-        searchStrings.add("Test");
-        searchStrings.add("Test");
-        searchStrings.add("Test");
-        searchStrings.add("Test");
-        searchStrings.add("Test");
-        searchStrings.add("Test");
-        searchStrings.add("Test");
-        searchStrings.add("Test");
-        searchStrings.add("Test");
-        searchStrings.add("Test");
-        searchStrings.add("Test");
-        searchStrings.add("Test");
-        searchStrings.add("Test");
-        searchStrings.add("Test");
-
+        searchStrings.add(new SearchString("Test", "1234"));
 
 
 
         frame = new Frame("Test", Color.WHITE, 1000, 800, true);
-        mainListPanel = new Panel(new Color(100, 50, 50),Color.BLACK, 0, 0, 400, 800, true, null);
-        addButton = new Button("Auswählen", new Color(0x767676), Color.WHITE, 0, 0, 200, 100);
+        titlePanel = new Panel(Color.WHITE,Color.BLACK, 0, 0, 1000, 50, true, null);
+        titleLabel = new JLabel("Hauptmenü", SwingConstants.CENTER);
+        titleLabel.setBounds(10, 0, 1000, 50);
+        titleLabel.setFont(new Font("Times New Roman", Font.BOLD, 20));
+        titleLabel.setForeground(Color.BLACK);
+        titlePanel.add(titleLabel);
+        mainListPanel = new Panel(new Color(100, 50, 50),Color.BLACK, 0, titlePanel.getHeight(), 400, frame.getHeight() - titlePanel.getHeight(), true, null);
+
         //mainListPanel.add(addButton);
 
-        JList<String> searchStringList = new JList<>(searchStrings.toArray(new String[0]));
+        searchModel = new DefaultListModel<>();
+        searchStringList = new JList<>(searchModel);
+
+        for(int i = 0; i < searchStrings.size(); i++){
+            searchModel.addElement(searchStrings.get(i).getTitle());
+        }
         searchStringList.setSelectionMode(ListSelectionModel.SINGLE_INTERVAL_SELECTION);
         searchStringList.addListSelectionListener(new ListSelectionListener() {
             @Override
             public void valueChanged(ListSelectionEvent e) {
-
             }
         });
         searchStringList.addMouseListener(new MouseListener() {
@@ -162,25 +81,37 @@ ArrayList<String> searchStrings = new ArrayList<>();
 
         //searchStringList.setBounds(0, 0, 200, 1000);
         searchStringList.setBackground(new Color(50, 50, 50));
-        //searchStringList.setForeground(Color.WHITE);
+        searchStringList.setForeground(Color.WHITE);
+
 
         JScrollPane test = new JScrollPane(searchStringList);
-        test.setBounds(0, 0, 400, 780);
+        test.setBounds(0, 0, 400, 763);
         //mainPanel.add(searchStringList);
-        //mainListPanel.add(test);
+        mainListPanel.add(test);
         //mainListPanel.setBackground(new Color(50, 50, 50));
-        frame.getContentPane().add(mainListPanel);
-
-        mainButtonPanel = new Panel(new Color(50, 50, 50), Color.BLACK, 400, 0, 600, 800, true, null);
-        frame.getContentPane().add(mainButtonPanel);
 
 
+        mainButtonPanel = new Panel(new Color(50, 50, 50), Color.BLACK, mainListPanel.getWidth(), mainListPanel.getY(), frame.getWidth() - mainListPanel.getWidth(), frame.getHeight() - titlePanel.getHeight(), true, null);
+        addButton = new Button("Hinzufügen", new Color(0x767676), Color.WHITE, 0, 0, 200, 100);
+        editButton = new Button("Bearbeiten", new Color(0x767676), Color.WHITE, 0, 100, 200, 100);
+        pokemonButton = new Button("Pokémon", new Color(0x767676), Color.WHITE, 0, 200, 200, 100);
+        mainButtonPanel.add(addButton);
+        mainButtonPanel.add(editButton);
+        mainButtonPanel.add(pokemonButton);
 
-        addPanel = new Panel(new Color(50, 50, 50),Color.BLACK, 0, 0, 980, 760, false, new BorderLayout());
 
 
-        JList<String> pokemonJList = new JList<>(PokemonList.pokemonList.toArray(new String[0]));
-        pokemonJList.setSelectionMode(ListSelectionModel.SINGLE_INTERVAL_SELECTION);
+        pokemonPanel = new Panel(new Color(50, 50, 50),Color.BLACK, 0, titlePanel.getHeight(), 400, frame.getHeight() - titlePanel.getHeight(), false, null);
+
+
+        //JList<String> pokemonJList = new JList<>(PokemonList.pokemonList.toArray(new String[0]));
+        pokemonModel = new DefaultListModel<>();
+        pokemonJList = new JList<>(pokemonModel);
+
+        for(int i = 0; i < PokemonList.pokemonList.size(); i++){
+            pokemonModel.addElement(PokemonList.pokemonList.get(i).getName());
+        }
+        pokemonJList.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
         pokemonJList.addListSelectionListener(new ListSelectionListener() {
             @Override
             public void valueChanged(ListSelectionEvent e) {
@@ -218,10 +149,12 @@ ArrayList<String> searchStrings = new ArrayList<>();
 
 
         JScrollPane scrollPane = new JScrollPane(pokemonJList);
+        scrollPane.setBounds(0, 20, 800, 650);
 
 
         // Create the text field for the search query
         JTextField searchField = new JTextField(20);
+        searchField.setBounds(0, 0, 800, 20);
 
         // Add a document listener to the text field to update the list of Pokemon
         searchField.getDocument().addDocumentListener(new DocumentListener() {
@@ -247,15 +180,26 @@ ArrayList<String> searchStrings = new ArrayList<>();
                 // Update the list of Pokemon to only include those that match the search query
                 pokemonJList.setListData(
                         PokemonList.pokemonList.stream()
-                                .filter(p -> p.toLowerCase().contains(query.toLowerCase()))
+                                .filter(p -> p.getName().toLowerCase().contains(query.toLowerCase()))
                                 .toArray(String[]::new)
                 );
             }
         });
-        addPanel.add(searchField, BorderLayout.NORTH);
-        addPanel.add(scrollPane, BorderLayout.CENTER);
+        pokemonPanel.add(searchField, BorderLayout.NORTH);
+        pokemonPanel.add(scrollPane, BorderLayout.CENTER);
 
-        frame.getContentPane().add(addPanel);
+        backPanel = new Panel(new Color(50, 50, 50), Color.WHITE, 800, titlePanel.getHeight(), 200, frame.getHeight() - titlePanel.getHeight(), false, null);
+        backButton = new Button("Zurück", new Color(0x767676), Color.WHITE, 0, 0, 200, 100);
+        backPanel.add(backButton);
+
+        frame.getContentPane().add(titlePanel);
+        frame.getContentPane().add(mainListPanel);
+        frame.getContentPane().add(mainButtonPanel);
+        frame.getContentPane().add(pokemonPanel);
+        frame.getContentPane().add(backPanel);
+
+        frame.revalidate();
+        frame.repaint();
 
 
 
@@ -263,8 +207,22 @@ ArrayList<String> searchStrings = new ArrayList<>();
 
 
 
+    }
 
+    static void showPokemonScreen() {
+        UI.mainListPanel.setVisible(false);
+        UI.mainButtonPanel.setVisible(false);
+        UI.pokemonPanel.setVisible(true);
+        UI.backPanel.setVisible(true);
+        UI.searchModel.addElement(new SearchString("1234", "5678").getTitle());
+    }
 
+    static void showMainScreen() {
+        titleLabel.setText("Hauptmenü");
+        pokemonPanel.setVisible(false);
+        backPanel.setVisible(false);
+        mainListPanel.setVisible(true);
+        mainButtonPanel.setVisible(true);
     }
 
 
