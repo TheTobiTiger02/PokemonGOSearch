@@ -18,10 +18,13 @@ public class PokemonList {
             Scanner sc = new Scanner(file);
 
             while(sc.hasNextLine()){
-                String pokemon = sc.nextLine();
-                int id = Integer.parseInt(pokemon.split("#")[1].substring(0, 3));
+                String text = sc.nextLine();
+                String pokemon = text.split(" ")[0];
 
-                pokemonList.add(new Pokemon(id, pokemon));
+
+                int id = Integer.parseInt(text.split("#")[1].substring(0, 3));
+
+                pokemonList.add(new Pokemon(id, pokemon, text));
 
             }
         }
@@ -30,8 +33,8 @@ public class PokemonList {
         }
     }
 
-    public static void addPokemon(int id, String pokemon) {
-        pokemonList.add(new Pokemon(id, pokemon));
+    public static void addPokemon(int id, String pokemon, String text) {
+        pokemonList.add(new Pokemon(id, pokemon, text));
     }
 
 

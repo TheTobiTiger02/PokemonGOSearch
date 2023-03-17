@@ -3,6 +3,7 @@ import javax.swing.border.Border;
 import java.awt.*;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.util.ArrayList;
 
 
 public class Button extends JButton implements MouseListener {
@@ -70,12 +71,27 @@ public class Button extends JButton implements MouseListener {
     public void mousePressed(MouseEvent e) {
 
         if(e.getSource() == UI.addButton){
+
+            Object[] options = {"Mit Nummer", "Mit Name"};
+            int selectedOption = JOptionPane.showOptionDialog(null, "Wie soll die Suche generiert werden?", "Optionen", JOptionPane.DEFAULT_OPTION, JOptionPane.QUESTION_MESSAGE, null, options, options[0]);
+            if (selectedOption == 0) {
+                UI.queryAsNumber = true;
+            }
+            else if (selectedOption == 1) {
+                UI.queryAsNumber = false;
+            }
+            else{
+                return;
+            }
+            UI.query = "";
+            UI.pokemon = new ArrayList<>();
+            UI.queryPreviewPanel.setVisible(true);
             UI.titleLabel.setText("Wähle alle Pokemon aus, die zur Suche hinzugefügt werden sollen");
             UI.showPokemonScreen();
         }
         if(e.getSource() == UI.editButton){
-            int index = UI.searchStringList.getSelectedIndex();
-            System.out.println(index);
+            UI.selectedSearch = UI.searchStringList.getSelectedIndex();
+            System.out.println(UI.selectedSearch);
 
         }
         if(e.getSource() == UI.pokemonButton){

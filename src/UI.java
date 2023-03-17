@@ -7,17 +7,26 @@ import java.awt.*;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 
 public class UI {
 
+
 static Frame frame;
 static JLabel titleLabel;
-static Panel mainListPanel, mainButtonPanel, pokemonPanel, backPanel, titlePanel;
+static Panel mainListPanel, mainButtonPanel, pokemonPanel, pokemonButtonPanel, titlePanel, queryPreviewPanel;
 static Button addButton,editButton, pokemonButton, backButton;
 static DefaultListModel<String> searchModel, pokemonModel;
 static JList<String> searchStringList, pokemonJList;
+static int selectedSearch;
+static boolean queryAsNumber;
+static String query;
+static JTextArea queryPreviewTextField;
+static JTextField searchField;
 
-ArrayList<SearchString> searchStrings = new ArrayList<>();
+static ArrayList<Pokemon> pokemon;
+static ArrayList<SearchString> searchStrings = new ArrayList<>();
 
 
 
@@ -25,7 +34,10 @@ ArrayList<SearchString> searchStrings = new ArrayList<>();
 
     public UI() {
         new PokemonList();
-        searchStrings.add(new SearchString("Test", "1234"));
+        for(int i = 0; i < 100; i++){
+            searchStrings.add(new SearchString(PokemonList.pokemonList.get(0).getName(), new Pokemon[] {PokemonList.pokemonList.get(0)}, false));
+        }
+
 
 
 
@@ -36,7 +48,7 @@ ArrayList<SearchString> searchStrings = new ArrayList<>();
         titleLabel.setFont(new Font("Times New Roman", Font.BOLD, 20));
         titleLabel.setForeground(Color.BLACK);
         titlePanel.add(titleLabel);
-        mainListPanel = new Panel(new Color(100, 50, 50),Color.BLACK, 0, titlePanel.getHeight(), 400, frame.getHeight() - titlePanel.getHeight(), true, null);
+        mainListPanel = new Panel(new Color(50, 50, 50),Color.BLACK, 0, titlePanel.getHeight(), 400, frame.getHeight() - titlePanel.getHeight(), true, null);
 
         //mainListPanel.add(addButton);
 
@@ -46,10 +58,11 @@ ArrayList<SearchString> searchStrings = new ArrayList<>();
         for(int i = 0; i < searchStrings.size(); i++){
             searchModel.addElement(searchStrings.get(i).getTitle());
         }
-        searchStringList.setSelectionMode(ListSelectionModel.SINGLE_INTERVAL_SELECTION);
+        searchStringList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         searchStringList.addListSelectionListener(new ListSelectionListener() {
             @Override
             public void valueChanged(ListSelectionEvent e) {
+
             }
         });
         searchStringList.addMouseListener(new MouseListener() {
@@ -85,13 +98,13 @@ ArrayList<SearchString> searchStrings = new ArrayList<>();
 
 
         JScrollPane test = new JScrollPane(searchStringList);
-        test.setBounds(0, 0, 400, 763);
+        test.setBounds(0, 0, 400, 713);
         //mainPanel.add(searchStringList);
         mainListPanel.add(test);
         //mainListPanel.setBackground(new Color(50, 50, 50));
 
 
-        mainButtonPanel = new Panel(new Color(50, 50, 50), Color.BLACK, mainListPanel.getWidth(), mainListPanel.getY(), frame.getWidth() - mainListPanel.getWidth(), frame.getHeight() - titlePanel.getHeight(), true, null);
+        mainButtonPanel = new Panel(new Color(100, 50, 50), Color.BLACK, mainListPanel.getWidth(), mainListPanel.getY(), frame.getWidth() - mainListPanel.getWidth(), frame.getHeight() - titlePanel.getHeight(), true, null);
         addButton = new Button("Hinzufügen", new Color(0x767676), Color.WHITE, 0, 0, 200, 100);
         editButton = new Button("Bearbeiten", new Color(0x767676), Color.WHITE, 0, 100, 200, 100);
         pokemonButton = new Button("Pokémon", new Color(0x767676), Color.WHITE, 0, 200, 200, 100);
@@ -107,9 +120,11 @@ ArrayList<SearchString> searchStrings = new ArrayList<>();
         //JList<String> pokemonJList = new JList<>(PokemonList.pokemonList.toArray(new String[0]));
         pokemonModel = new DefaultListModel<>();
         pokemonJList = new JList<>(pokemonModel);
+        pokemonJList.setBackground(new Color(50, 50, 50));
+        pokemonJList.setForeground(Color.WHITE);
 
         for(int i = 0; i < PokemonList.pokemonList.size(); i++){
-            pokemonModel.addElement(PokemonList.pokemonList.get(i).getName());
+            pokemonModel.addElement(PokemonList.pokemonList.get(i).getText());
         }
         pokemonJList.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
         pokemonJList.addListSelectionListener(new ListSelectionListener() {
@@ -118,8 +133,9 @@ ArrayList<SearchString> searchStrings = new ArrayList<>();
                 // Get the selected item from the JList
                 String selectedItem = pokemonJList.getSelectedValue();
 
+
                 // Print the selected item to the console
-                System.out.println("Selected item: " + selectedItem);
+                //System.out.println("Selected item: " + selectedItem);
             }
         });
         pokemonJList.addMouseListener(new MouseListener() {
@@ -127,11 +143,36 @@ ArrayList<SearchString> searchStrings = new ArrayList<>();
             public void mouseClicked(MouseEvent e) {
                 if (e.getClickCount() == 2) {
                     // Get the selected item from the JList
+                    queryPreviewTextField.setText("");
+                    pokemon.add(PokemonList.pokemonList.get(pokemonJList.getSelectedIndex()));
+                    Collections.sort(pokemon, new Comparator<Pokemon>() {
+                        @Override
+                        public int compare(Pokemon p1, Pokemon p2) {
+                            return Integer.compare(p1.getId(), p2.getId());
+                        }
+                    });
+                    for(Pokemon p : pokemon){
+                        //System.out.println(p.getId());
+                    }
+                    //query+= pokemonJList.getSelectedValue() + ",";
+                    if(queryAsNumber){
+                        for(Pokemon p : pokemon){
+                            queryPreviewTextField.setText(queryPreviewTextField.getText() + p.getId() + ",");
+                        }
+                    }
+                    else {
+                        for(Pokemon p : pokemon){
+                            queryPreviewTextField.setText(queryPreviewTextField.getText() + p.getName() + ",");
+                        }
+                    }
+
+
+
                     String selectedItem = pokemonJList.getSelectedValue();
-                    System.out.println(pokemonJList.getSelectedIndex());
+                    //System.out.println(pokemonJList.getSelectedIndex());
 
                     // Print the selected item to the console
-                    System.out.println("Double-clicked item: " + selectedItem);
+                    //System.out.println("Double-clicked item: " + selectedItem);
                 }
             }
 
@@ -149,12 +190,13 @@ ArrayList<SearchString> searchStrings = new ArrayList<>();
 
 
         JScrollPane scrollPane = new JScrollPane(pokemonJList);
-        scrollPane.setBounds(0, 20, 800, 650);
+        scrollPane.setBounds(0, 20, 400, 693);
 
 
         // Create the text field for the search query
-        JTextField searchField = new JTextField(20);
-        searchField.setBounds(0, 0, 800, 20);
+        searchField = new JTextField(20);
+        searchField.setBounds(0, 0, 400, 20);
+
 
         // Add a document listener to the text field to update the list of Pokemon
         searchField.getDocument().addDocumentListener(new DocumentListener() {
@@ -176,11 +218,13 @@ ArrayList<SearchString> searchStrings = new ArrayList<>();
             private void updateList() {
                 // Get the search query
                 String query = searchField.getText();
+                System.out.println(query);
 
                 // Update the list of Pokemon to only include those that match the search query
                 pokemonJList.setListData(
                         PokemonList.pokemonList.stream()
-                                .filter(p -> p.getName().toLowerCase().contains(query.toLowerCase()))
+                                .filter(p -> p.getText().toLowerCase().contains(query.toLowerCase()))
+                                .map(Pokemon::getText)
                                 .toArray(String[]::new)
                 );
             }
@@ -188,15 +232,26 @@ ArrayList<SearchString> searchStrings = new ArrayList<>();
         pokemonPanel.add(searchField, BorderLayout.NORTH);
         pokemonPanel.add(scrollPane, BorderLayout.CENTER);
 
-        backPanel = new Panel(new Color(50, 50, 50), Color.WHITE, 800, titlePanel.getHeight(), 200, frame.getHeight() - titlePanel.getHeight(), false, null);
+        pokemonButtonPanel = new Panel(new Color(100, 50, 50), Color.WHITE, 800, titlePanel.getHeight(), 200, frame.getHeight() - titlePanel.getHeight(), false, null);
         backButton = new Button("Zurück", new Color(0x767676), Color.WHITE, 0, 0, 200, 100);
-        backPanel.add(backButton);
+        pokemonButtonPanel.add(backButton);
+
+        queryPreviewPanel = new Panel(new Color(50, 50, 50), Color.WHITE, pokemonPanel.getWidth(), titlePanel.getHeight(), frame.getWidth() - pokemonPanel.getWidth() - pokemonButtonPanel.getWidth(), frame.getHeight() - titlePanel.getHeight(), false, null);
+        queryPreviewTextField = new JTextArea();
+        queryPreviewTextField.setBounds(0, 0, queryPreviewPanel.getWidth(), queryPreviewPanel.getHeight());
+        queryPreviewTextField.setEditable(false);
+        queryPreviewTextField.setLineWrap(true);
+        queryPreviewTextField.setWrapStyleWord(true);
+        queryPreviewPanel.add(queryPreviewTextField);
+
+
 
         frame.getContentPane().add(titlePanel);
         frame.getContentPane().add(mainListPanel);
         frame.getContentPane().add(mainButtonPanel);
         frame.getContentPane().add(pokemonPanel);
-        frame.getContentPane().add(backPanel);
+        frame.getContentPane().add(pokemonButtonPanel);
+        frame.getContentPane().add(queryPreviewPanel);
 
         frame.revalidate();
         frame.repaint();
@@ -213,14 +268,14 @@ ArrayList<SearchString> searchStrings = new ArrayList<>();
         UI.mainListPanel.setVisible(false);
         UI.mainButtonPanel.setVisible(false);
         UI.pokemonPanel.setVisible(true);
-        UI.backPanel.setVisible(true);
-        UI.searchModel.addElement(new SearchString("1234", "5678").getTitle());
+        UI.pokemonButtonPanel.setVisible(true);
+        //UI.searchModel.addElement(new SearchString("1234", "5678").getTitle());
     }
 
     static void showMainScreen() {
         titleLabel.setText("Hauptmenü");
         pokemonPanel.setVisible(false);
-        backPanel.setVisible(false);
+        pokemonButtonPanel.setVisible(false);
         mainListPanel.setVisible(true);
         mainButtonPanel.setVisible(true);
     }
