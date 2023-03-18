@@ -307,5 +307,15 @@ static PreparedStatement statement;
         }
     }
 
+    static void test() {
+        try {
+            statement = connection.prepareStatement("insert into pokemon(number,name)values(" +152 + ",?)");
+            statement.setString(1, "Chikorita");
+            statement.executeUpdate();
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
 
 }
