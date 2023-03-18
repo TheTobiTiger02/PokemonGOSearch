@@ -98,7 +98,9 @@ public class Button extends JButton implements MouseListener {
             UI.showPokemonScreen();
         }
         if(e.getSource() == UI.backButton){
-            UI.showMainScreen();
+            UI.pokemonModel.clear();
+            UI.fillPokemonModel();
+            //UI.showMainScreen();
         }
     }
 

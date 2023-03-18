@@ -1,8 +1,13 @@
 import java.io.*;
 import java.util.ArrayList;
 import java.util.Scanner;
+import java.sql.*;
 
 public class PokemonList {
+
+    Connection con1;
+    PreparedStatement insert;
+
 
     //public static ArrayList<String> pokemonList = new ArrayList<>();
     public static ArrayList<Pokemon> pokemonList = new ArrayList<>();
@@ -30,6 +35,25 @@ public class PokemonList {
         }
         catch (Exception e){
             e.printStackTrace();
+        }
+    }
+
+    public void insertPokemon() {
+        try {
+            con1 = DriverManager.getConnection("jdbc:mysql://sql7.freesqldatabase.com/sql7606827", "sql7606827",
+                    "uAPhstaBJb");
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+        for(Pokemon p : pokemonList){
+            try {
+                insert = con1.prepareStatement("insert into pokemon(number,name)values(" +p.getId() + ",?)");
+                insert.setString(1, p.getName());
+                System.out.println(insert);
+                insert.executeUpdate();
+            } catch (SQLException e) {
+                throw new RuntimeException(e);
+            }
         }
     }
 

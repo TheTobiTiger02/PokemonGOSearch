@@ -6,6 +6,7 @@ import javax.swing.event.ListSelectionListener;
 import java.awt.*;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.sql.*;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -28,12 +29,21 @@ static JTextField searchField;
 static ArrayList<Pokemon> pokemon;
 static ArrayList<SearchString> searchStrings = new ArrayList<>();
 
+static Connection connection;
+static PreparedStatement statement;
+
 
 
 
 
     public UI() {
+        try {
+            connection = DriverManager.getConnection("jdbc:mysql://sql7.freesqldatabase.com/sql7606827", "sql7606827", "uAPhstaBJb");
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
         new PokemonList();
+
         for(int i = 0; i < 100; i++){
             searchStrings.add(new SearchString(PokemonList.pokemonList.get(0).getName(), new Pokemon[] {PokemonList.pokemonList.get(0)}, false));
         }
@@ -119,13 +129,14 @@ static ArrayList<SearchString> searchStrings = new ArrayList<>();
 
         //JList<String> pokemonJList = new JList<>(PokemonList.pokemonList.toArray(new String[0]));
         pokemonModel = new DefaultListModel<>();
+        fillPokemonModel();
         pokemonJList = new JList<>(pokemonModel);
         pokemonJList.setBackground(new Color(50, 50, 50));
         pokemonJList.setForeground(Color.WHITE);
 
-        for(int i = 0; i < PokemonList.pokemonList.size(); i++){
-            pokemonModel.addElement(PokemonList.pokemonList.get(i).getText());
-        }
+
+
+
         pokemonJList.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
         pokemonJList.addListSelectionListener(new ListSelectionListener() {
             @Override
@@ -278,6 +289,22 @@ static ArrayList<SearchString> searchStrings = new ArrayList<>();
         pokemonButtonPanel.setVisible(false);
         mainListPanel.setVisible(true);
         mainButtonPanel.setVisible(true);
+    }
+
+    static void fillPokemonModel() {
+
+        System.out.println("Test");
+        try {
+            statement = connection.prepareStatement("select * from pokemon");
+            ResultSet rs = statement.executeQuery();
+
+            while(rs.next()){
+                pokemonModel.addElement(rs.getString("name") + " (#" + String.format("%04d", Integer.parseInt(rs.getString("number"))) + ")");
+
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
     }
 
 

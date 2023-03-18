@@ -1,39 +1,40 @@
 
+import java.sql.*;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Vector;
 
 public class Test {
-    public static void main(String[] args) {
-        new PokemonList();
-        ArrayList<Pokemon> pokemon = new ArrayList<>();
-        pokemon.add(PokemonList.pokemonList.get(5));
-        pokemon.add(PokemonList.pokemonList.get(10));
-        pokemon.add(PokemonList.pokemonList.get(53));
-        pokemon.add(PokemonList.pokemonList.get(7));
-        pokemon.add(PokemonList.pokemonList.get(13));
-        pokemon.add(PokemonList.pokemonList.get(103));
-        pokemon.add(PokemonList.pokemonList.get(40));
-        pokemon.add(PokemonList.pokemonList.get(1));
+    public static void main(String[] args) throws ClassNotFoundException, SQLException, InterruptedException {
 
-        Collections.sort(pokemon, new Comparator<Pokemon>() {
-            @Override
-            public int compare(Pokemon o1, Pokemon o2) {
-                return Integer.compare(o1.getId(), o2.getId());
+        Connection con1;
+        PreparedStatement insert;
+        //Class.forName("com.mysql.jdbc.Driver");
+        con1 = DriverManager.getConnection("jdbc:mysql://sql7.freesqldatabase.com/sql7606827", "sql7606827", "uAPhstaBJb");
+        //insert = con1.prepareStatement("insert into Pokemon(number,name)values(1,?)");
+        //insert.setString(1, "Bulbasaur");
+        //insert.executeUpdate();
+        insert = con1.prepareStatement("select * from pokemon ORDER BY number DESC");
+        ResultSet rs = insert.executeQuery();
+        ResultSetMetaData rss = rs.getMetaData();
+        int c = rss.getColumnCount();
+
+
+
+        while(rs.next()){
+
+            String s = "";
+
+            for(int a = 1; a < c; a++){
+                s += rs.getString("number") + " ";
+                s += rs.getString("name");
+
             }
-        });
-        pokemon.add(PokemonList.pokemonList.get(3));
-        Collections.sort(pokemon, new Comparator<Pokemon>() {
-            @Override
-            public int compare(Pokemon o1, Pokemon o2) {
-                return Integer.compare(o1.getId(), o2.getId());
-            }
-        });
-
-
-        for(Pokemon p : pokemon){
-            System.out.println(p.getId());
+            System.out.println(s);
         }
+
+
 
     }
 }
