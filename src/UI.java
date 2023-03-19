@@ -4,6 +4,8 @@ import javax.swing.event.DocumentListener;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import java.awt.*;
+import java.awt.datatransfer.Clipboard;
+import java.awt.datatransfer.StringSelection;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.sql.*;
@@ -137,6 +139,43 @@ static User activeUser;
         //searchStringList.setBounds(0, 0, 200, 1000);
         searchStringList.setBackground(new Color(50, 50, 50));
         searchStringList.setForeground(Color.WHITE);
+        searchStringList.addMouseListener(new MouseListener() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                if (e.getClickCount() == 2) {
+                    try {
+                        statement = connection.prepareStatement("select * from search where title = ? and username = ?");
+                        statement.setString(1, searchModel.getElementAt(searchStringList.getSelectedIndex()));
+                        statement.setString(2, activeUser.getUsername());
+                        ResultSet rs = statement.executeQuery();
+                        if(rs.next()){
+                            StringSelection stringSelection = new StringSelection(rs.getString("text"));
+                            Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+                            clipboard.setContents(stringSelection, null);
+                            JOptionPane.showMessageDialog(frame, "Suche wurde in die Zwischenablage kopiert");
+                        }
+                    } catch (SQLException ex) {
+                        throw new RuntimeException(ex);
+                    }
+                }
+            }
+
+            @Override
+            public void mousePressed(MouseEvent e) {
+            }
+
+            @Override
+            public void mouseReleased(MouseEvent e) {
+            }
+
+            @Override
+            public void mouseEntered(MouseEvent e) {
+            }
+
+            @Override
+            public void mouseExited(MouseEvent e) {
+            }
+        });
 
 
         searchListScrollPane = new JScrollPane(searchStringList);
