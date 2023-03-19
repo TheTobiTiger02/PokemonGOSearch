@@ -91,8 +91,12 @@ public class Button extends JButton implements MouseListener {
                 return;
             }
             UI.query = "";
+            UI.isAdding = true;
             UI.pokemon = new ArrayList<>();
             UI.searchPreviewPanel.setVisible(true);
+            UI.continueButton.setVisible(true);
+            UI.completeButton.setVisible(true);
+            UI.searchPreviewModel.clear();
             UI.titleLabel.setText("Wähle alle Pokemon aus, die zur Suche hinzugefügt werden sollen");
             UI.showPokemonScreen();
         }
@@ -105,9 +109,18 @@ public class Button extends JButton implements MouseListener {
             UI.showPokemonScreen();
         }
         if(e.getSource() == UI.backButton){
-            UI.showMainScreen();
-            UI.scrollPane.getVerticalScrollBar().setValue(0);
             UI.fillPokemonModel();
+            UI.continueButton.setVisible(false);
+            UI.completeButton.setVisible(false);
+            UI.isAdding = false;
+            UI.showMainScreen();
+            UI.pokemonScrollPane.getVerticalScrollBar().setValue(0);
+        }
+        if(e.getSource() == UI.continueButton){
+
+        }
+        if(e.getSource() == UI.completeButton){
+            UI.addSearch();
         }
     }
 
