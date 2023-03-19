@@ -1,0 +1,9 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="PokemonGoSearch:jar">
+    <output-path>$PROJECT_DIR$/out/artifacts/PokemonGoSearch_jar</output-path>
+    <root id="archive" name="PokemonGoSearch.jar">
+      <element id="module-output" name="PokemonGoSearch" />
+      <element id="extracted-dir" path="$USER_HOME$/Downloads/mysql-connector-j-8.0.32/mysql-connector-j-8.0.32.jar" path-in-jar="/" />
+    </root>
+  </artifact>
+</component>
