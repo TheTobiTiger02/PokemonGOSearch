@@ -32,6 +32,8 @@ static ArrayList<Pokemon> pokemon;
 static ArrayList<SearchString> searchStrings = new ArrayList<>();
 static ArrayList<String> pokemonList;
 
+static String pokemonQuery, searchQuery;
+
 static boolean isAdding;
 
 static Connection connection;
@@ -45,10 +47,9 @@ static User activeUser;
 
     public UI() {
 
-
-
         try {
             connection = DriverManager.getConnection("jdbc:mysql://sql7.freesqldatabase.com/sql7606827", "sql7606827", "uAPhstaBJb");
+
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
@@ -223,20 +224,27 @@ static User activeUser;
             @Override
             public void mouseClicked(MouseEvent e) {
                 if (e.getClickCount() == 2 && isAdding) {
-                    // Get the selected item from the JList
-                    //pokemon.add(PokemonList.pokemonList.get(pokemonJList.getSelectedIndex()));
-                    /*Collections.sort(pokemon, new Comparator<Pokemon>() {
-                        @Override
-                        public int compare(Pokemon p1, Pokemon p2) {
-                            return Integer.compare(p1.getId(), p2.getId());
-                        }
-                    });
-
-                     */
 
                     searchPreviewModel.addElement(pokemonModel.getElementAt(pokemonJList.getSelectedIndex()));
-                    pokemonList.remove(pokemonJList.getSelectedIndex());
                     pokemonModel.remove(pokemonJList.getSelectedIndex());
+                    if(pokemonModel.getSize() == 0){
+                        pokemonQuery = "";
+                        searchQuery = "select * from pokemon";
+                    }
+                    else{
+                        pokemonQuery = "select * from pokemon where (numberChar != ";
+                        searchQuery = "select * from pokemon where (numberChar = ";
+                    }
+                    for(int i = 0; i < searchPreviewModel.size(); i++){
+                        pokemonQuery += searchPreviewModel.getElementAt(i).split("#")[1].split("\\)")[0];
+                        searchQuery += searchPreviewModel.getElementAt(i).split("#")[1].split("\\)")[0];
+                        if(i + 1 < searchPreviewModel.getSize()){
+                            pokemonQuery += " and numberChar != ";
+                            searchQuery += " or numberChar = ";
+                        }
+                    }
+                    searchQuery += ")";
+                    pokemonQuery += ")";
                     sortPreviewList();
 
 
@@ -306,31 +314,38 @@ static User activeUser;
 
             private void updateList() {
                 // Get the search query
-                String query = searchField.getText();
+                String search = searchField.getText();
+
+                try {
+
+                    if(search.equals("")){
+                        statement = connection.prepareStatement(pokemonQuery);
+                    }
+                    else{
+                        if(pokemonQuery.equals("select * from pokemon")){
+                            statement = connection.prepareStatement(pokemonQuery + " where numberChar like ? or name like ?");
+                            statement.setString(1, search + "%");
+                            statement.setString(2, search + "%");
+                        }
+                        else{
+                            statement = connection.prepareStatement(pokemonQuery + " and (numberChar like ? or name like ?)");
+                            statement.setString(1, search + "%");
+                            statement.setString(2, search + "%");
+                        }
+                    }
+                    pokemonModel.clear();
+                    System.out.println(statement);
+
+                    ResultSet rs = statement.executeQuery();
+
+                    while(rs.next()){
+                        pokemonModel.addElement(rs.getString("name") + " (#" + rs.getString("number") + ")");
+                    }
 
 
-
-                // Update the list of Pokemon to only include those that match the search query
-                /*pokemonJList.setListData(
-                        PokemonList.pokemonList.stream()
-                                .filter(p -> p.getText().toLowerCase().contains(query.toLowerCase()))
-                                .map(Pokemon::getText)
-                                .toArray(String[]::new)
-                );
-
-                 */
-
-                pokemonJList.setListData(
-                        pokemonList.stream()
-                                .filter(p -> p.toLowerCase().contains(query.toLowerCase()))
-                                .toArray(String[]::new)
-                );
-
-
-
-
-
-
+                } catch (SQLException e) {
+                    throw new RuntimeException(e);
+                }
 
 
             }
@@ -376,8 +391,25 @@ static User activeUser;
                 if (e.getClickCount() == 2) {
 
                     pokemonModel.addElement(searchPreviewModel.getElementAt(searchPreviewList.getSelectedIndex()));
-                    pokemonList.add(searchPreviewModel.getElementAt(searchPreviewList.getSelectedIndex()));
                     searchPreviewModel.remove(searchPreviewList.getSelectedIndex());
+                    if(searchPreviewModel.getSize() == 0){
+                        searchQuery = "";
+                        pokemonQuery = "select * from pokemon";
+                    }
+                    else{
+                        searchQuery = "select * from pokemon where (numberChar = ";
+                        pokemonQuery = "select * from pokemon where (numberChar != ";
+                    }
+                    for(int i = 0; i < searchPreviewModel.size(); i++){
+                        pokemonQuery += searchPreviewModel.getElementAt(i).split("#")[1].split("\\)")[0];
+                        searchQuery += searchPreviewModel.getElementAt(i).split("#")[1].split("\\)")[0];
+                        if(i + 1 < searchPreviewModel.getSize()){
+                            pokemonQuery += " and numberChar != ";
+                            searchQuery += " or numberChar = ";
+                        }
+                    }
+                    searchQuery += ")";
+                    pokemonQuery += ")";
                     sortPokemonList();
                 }
             }
@@ -424,31 +456,39 @@ static User activeUser;
 
             private void updateList() {
                 // Get the search query
-                String query = searchPreviewSearchField.getText();
+                String search = searchPreviewSearchField.getText();
 
 
-
-                // Update the list of Pokemon to only include those that match the search query
-                /*searchPreviewList.setListData(
-                        PokemonList.pokemonList.stream()
-                                .filter(p -> p.getText().toLowerCase().contains(query.toLowerCase()))
-                                .map(Pokemon::getText)
-                                .toArray(String[]::new)
-                );
-
-                 */
-
-                searchPreviewList.setListData(
-                        pokemonList.stream()
-                                .filter(p -> p.toLowerCase().contains(query.toLowerCase()))
-                                .toArray(String[]::new)
-                );
+                try {
 
 
+                    if(search.equals("")){
+                        statement = connection.prepareStatement(searchQuery);
+                    }
+                    else{
+                        if(searchQuery.equals("select * from pokemon")){
+                            statement = connection.prepareStatement(searchQuery + " where numberChar like ? or name like ?");
+                            statement.setString(1, search + "%");
+                            statement.setString(2, search + "%");
+                        }
+                        else{
+                            statement = connection.prepareStatement(searchQuery + " and (numberChar like ? or name like ?)");
+                            statement.setString(1, search + "%");
+                            statement.setString(2, search + "%");
+                        }
+                    }
+                    searchPreviewModel.clear();
+
+                    ResultSet rs = statement.executeQuery();
+
+                    while(rs.next()){
+                        searchPreviewModel.addElement(rs.getString("name") + " (#" + rs.getString("number") + ")");
+                    }
 
 
-
-
+                } catch (SQLException e) {
+                    throw new RuntimeException(e);
+                }
 
             }
         });
@@ -555,19 +595,18 @@ static User activeUser;
         }
         int number;
         for(int i = 0; i < searchPreviewModel.getSize(); i++){
-            number = Integer.parseInt(searchPreviewModel.getElementAt(i).split("#")[1].substring(0, 4));
+            number = Integer.parseInt(searchPreviewModel.getElementAt(i).split("#")[1].split("\\)")[0]);
             query += String.valueOf(number);
             if(i + 1 < searchPreviewModel.getSize()){
                 query += " and number != ";
             }
         }
-        System.out.println(query);
         pokemonModel.clear();
         try {
             statement = connection.prepareStatement(query);
             ResultSet rs = statement.executeQuery();
             while(rs.next()){
-                pokemonModel.addElement(rs.getString("name") + " (#" + String.format("%04d", Integer.parseInt(rs.getString("number"))) + ")");
+                pokemonModel.addElement(rs.getString("name") + " (#" + rs.getString("number") + ")");
             }
         } catch (SQLException e) {
             throw new RuntimeException(e);
@@ -579,7 +618,7 @@ static User activeUser;
         String query = "select * from pokemon where number = ";
         int number;
         for(int i = 0; i < searchPreviewModel.getSize(); i++){
-            number = Integer.parseInt(searchPreviewModel.getElementAt(i).split("#")[1].substring(0, 4));
+            number = Integer.parseInt(searchPreviewModel.getElementAt(i).split("#")[1].split("\\)")[0]);
             query += String.valueOf(number);
             if(i + 1 < searchPreviewModel.getSize()){
                 query += " or number = ";
@@ -590,8 +629,7 @@ static User activeUser;
             statement = connection.prepareStatement(query);
             ResultSet rs = statement.executeQuery();
             while(rs.next()){
-                searchPreviewModel.addElement(rs.getString("name") + " (#" + String.format("%04d", Integer.parseInt(rs.getString("number"))) + ")");
-            }
+                searchPreviewModel.addElement(rs.getString("name") + " (#" + rs.getString("number") + ")");            }
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
@@ -633,22 +671,23 @@ static User activeUser;
 
     static void fillPokemonModel() {
 
-
+        pokemonQuery = "select * from pokemon";
         UI.pokemonModel.clear();
         try {
-            statement = connection.prepareStatement("select * from pokemon");
+            statement = connection.prepareStatement(pokemonQuery);
             ResultSet rs = statement.executeQuery();
             pokemonList = new ArrayList<>();
 
             while(rs.next()){
-                pokemonModel.addElement(rs.getString("name") + " (#" + String.format("%04d", Integer.parseInt(rs.getString("number"))) + ")");
-            }
+                pokemonModel.addElement(rs.getString("name") + " (#" + rs.getString("number") + ")");            }
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
-        for(int i = 0; i < pokemonJList.getModel().getSize(); i++){
+        /*for(int i = 0; i < pokemonJList.getModel().getSize(); i++){
             pokemonList.add(pokemonJList.getModel().getElementAt(i));
         }
+
+         */
     }
 
     static void addSearch(){

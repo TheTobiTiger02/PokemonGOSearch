@@ -47,7 +47,7 @@ public class PokemonList {
         }
         for(Pokemon p : pokemonList){
             try {
-                insert = con1.prepareStatement("insert into pokemon(number,name)values(" +p.getId() + ",?)");
+                insert= con1.prepareStatement("insert into pokemon(number,numberChar,name)values(" +p.getId() + ",?)");
                 insert.setString(1, p.getName());
                 System.out.println(insert);
                 insert.executeUpdate();
