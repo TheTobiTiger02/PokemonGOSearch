@@ -8,18 +8,13 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.sql.*;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.awt.datatransfer.StringSelection;
-import java.awt.Toolkit;
-import java.awt.datatransfer.Clipboard;
 
 public class UI implements Runnable{
 
 
 static Frame frame;
 static JLabel usernameLabel, passwordLabel, titleLabel;
-static Panel loginPanel, mainListPanel, mainButtonPanel, pokemonPanel, pokemonButtonPanel, titlePanel, searchPreviewPanel;
+static Panel loginPanel, searchListPanel, mainButtonPanel, pokemonPanel, pokemonButtonPanel, titlePanel, searchPreviewPanel;
 static Button loginButton, registerButton, addButton,editButton, pokemonButton, backButton, continueButton, completeButton;
 static DefaultListModel<String> searchModel, pokemonModel, searchPreviewModel;
 static JList<String> searchStringList, pokemonJList, searchPreviewList;
@@ -29,7 +24,7 @@ static String query;
 static JTextArea queryPreviewTextField;
 static JTextField usernameTextField, searchField, searchPreviewSearchField;
 static JPasswordField passwordTextField;
-static JScrollPane pokemonScrollPane, mainListScrollPane, searchPreviewScrollPane;
+static JScrollPane pokemonScrollPane, searchListScrollPane, searchPreviewScrollPane;
 
 static ArrayList<Pokemon> pokemon;
 static ArrayList<SearchString> searchStrings = new ArrayList<>();
@@ -95,7 +90,7 @@ static User activeUser;
         loginPanel.add(passwordLabel);
 
 
-        mainListPanel = new Panel(new Color(50, 50, 50),Color.BLACK, 0, titlePanel.getHeight(), 400, frame.getHeight() - titlePanel.getHeight(), false, null);
+        searchListPanel = new Panel(new Color(50, 50, 50),Color.BLACK, 0, titlePanel.getHeight(), 400, frame.getHeight() - titlePanel.getHeight(), false, null);
 
         //mainListPanel.add(addButton);
 
@@ -144,14 +139,14 @@ static User activeUser;
         searchStringList.setForeground(Color.WHITE);
 
 
-        mainListScrollPane = new JScrollPane(searchStringList);
-        mainListScrollPane.setBounds(0, 0, 400, 713);
+        searchListScrollPane = new JScrollPane(searchStringList);
+        searchListScrollPane.setBounds(0, 0, 400, 713);
         //mainPanel.add(searchStringList);
-        mainListPanel.add(mainListScrollPane);
+        searchListPanel.add(searchListScrollPane);
         //mainListPanel.setBackground(new Color(50, 50, 50));
 
 
-        mainButtonPanel = new Panel(new Color(100, 50, 50), Color.BLACK, mainListPanel.getWidth(), mainListPanel.getY(), frame.getWidth() - mainListPanel.getWidth(), frame.getHeight() - titlePanel.getHeight(), false, null);
+        mainButtonPanel = new Panel(new Color(100, 50, 50), Color.BLACK, searchListPanel.getWidth(), searchListPanel.getY(), frame.getWidth() - searchListPanel.getWidth(), frame.getHeight() - titlePanel.getHeight(), false, null);
         addButton = new Button("Hinzufügen", new Color(0x767676), Color.WHITE, 0, 0, 200, 100);
         editButton = new Button("Bearbeiten", new Color(0x767676), Color.WHITE, 0, 100, 200, 100);
         pokemonButton = new Button("Pokémon", new Color(0x767676), Color.WHITE, 0, 200, 200, 100);
@@ -200,7 +195,7 @@ static User activeUser;
 
                      */
 
-                    searchPreviewModel.addElement(pokemonJList.getModel().getElementAt(pokemonJList.getSelectedIndex()));
+                    searchPreviewModel.addElement(pokemonModel.getElementAt(pokemonJList.getSelectedIndex()));
                     pokemonList.remove(pokemonJList.getSelectedIndex());
                     pokemonModel.remove(pokemonJList.getSelectedIndex());
                     sortPreviewList();
@@ -222,7 +217,7 @@ static User activeUser;
 
 
 
-                    String selectedItem = pokemonJList.getSelectedValue();
+                    //String selectedItem = pokemonJList.getSelectedValue();
                     //System.out.println(pokemonJList.getSelectedIndex());
 
                     // Print the selected item to the console
@@ -340,38 +335,11 @@ static User activeUser;
             @Override
             public void mouseClicked(MouseEvent e) {
                 if (e.getClickCount() == 2) {
-                    System.out.println("Test");
-                    // Get the selected item from the JList
 
-                    //pokemon.add(PokemonList.pokemonList.get(searchPreviewList.getSelectedIndex()));
-                    Collections.sort(pokemon, new Comparator<Pokemon>() {
-                        @Override
-                        public int compare(Pokemon p1, Pokemon p2) {
-                            return Integer.compare(p1.getId(), p2.getId());
-                        }
-                    });
-                    for(Pokemon p : pokemon){
-                        //System.out.println(p.getId());
-                    }
-                    //query+= searchPreviewList.getSelectedValue() + ",";
-                    if(queryAsNumber){
-                        for(Pokemon p : pokemon){
-                            queryPreviewTextField.setText(queryPreviewTextField.getText() + p.getId() + ",");
-                        }
-                    }
-                    else {
-                        for(Pokemon p : pokemon){
-                            queryPreviewTextField.setText(queryPreviewTextField.getText() + p.getName() + ",");
-                        }
-                    }
-
-
-
-                    String selectedItem = searchPreviewList.getSelectedValue();
-                    //System.out.println(searchPreviewList.getSelectedIndex());
-
-                    // Print the selected item to the console
-                    //System.out.println("Double-clicked item: " + selectedItem);
+                    pokemonModel.addElement(searchPreviewModel.getElementAt(searchPreviewList.getSelectedIndex()));
+                    pokemonList.add(searchPreviewModel.getElementAt(searchPreviewList.getSelectedIndex()));
+                    searchPreviewModel.remove(searchPreviewList.getSelectedIndex());
+                    sortPokemonList();
                 }
             }
 
@@ -452,7 +420,7 @@ static User activeUser;
 
         frame.getContentPane().add(loginPanel);
         frame.getContentPane().add(titlePanel);
-        frame.getContentPane().add(mainListPanel);
+        frame.getContentPane().add(searchListPanel);
         frame.getContentPane().add(mainButtonPanel);
         frame.getContentPane().add(pokemonPanel);
         frame.getContentPane().add(pokemonButtonPanel);
@@ -530,6 +498,7 @@ static User activeUser;
             ResultSet rs = statement.executeQuery();
             if(rs.next()){
                 activeUser = new User(rs.getString("username"), rs.getString("password"));
+                updateSearchList(activeUser.getUsername());
             }
         } catch (SQLException e) {
             throw new RuntimeException(e);
@@ -537,10 +506,37 @@ static User activeUser;
     }
 
     static void sortPokemonList() {
+        String query = "";
+        if(searchPreviewModel.getSize() == 0){
+            query = "select * from pokemon";
+        }
+        else{
+            query = "select * from pokemon where number != ";
 
+        }
+        int number;
+        for(int i = 0; i < searchPreviewModel.getSize(); i++){
+            number = Integer.parseInt(searchPreviewModel.getElementAt(i).split("#")[1].substring(0, 4));
+            query += String.valueOf(number);
+            if(i + 1 < searchPreviewModel.getSize()){
+                query += " and number != ";
+            }
+        }
+        System.out.println(query);
+        pokemonModel.clear();
+        try {
+            statement = connection.prepareStatement(query);
+            ResultSet rs = statement.executeQuery();
+            while(rs.next()){
+                pokemonModel.addElement(rs.getString("name") + " (#" + String.format("%04d", Integer.parseInt(rs.getString("number"))) + ")");
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     static void sortPreviewList() {
+
         String query = "select * from pokemon where number = ";
         int number;
         for(int i = 0; i < searchPreviewModel.getSize(); i++){
@@ -563,20 +559,35 @@ static User activeUser;
     }
 
     static void showMainScreen() {
+        updateSearchList(activeUser.getUsername());
         titleLabel.setText("Hauptmenü");
         pokemonPanel.setVisible(false);
         pokemonButtonPanel.setVisible(false);
-        mainListPanel.setVisible(true);
+        searchListPanel.setVisible(true);
         mainButtonPanel.setVisible(true);
         UI.searchPreviewPanel.setVisible(false);
     }
 
     static void showPokemonScreen() {
-        UI.mainListPanel.setVisible(false);
+        UI.searchListPanel.setVisible(false);
         UI.mainButtonPanel.setVisible(false);
         UI.pokemonPanel.setVisible(true);
         UI.pokemonButtonPanel.setVisible(true);
         //UI.searchModel.addElement(new SearchString("1234", "5678").getTitle());
+    }
+
+    static void updateSearchList(String username){
+        searchModel.clear();
+        try {
+            statement = connection.prepareStatement("select * from search where username = ?");
+            statement.setString(1, username);
+            ResultSet rs = statement.executeQuery();
+            while(rs.next()){
+                searchModel.addElement(rs.getString("title"));
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
     }
 
 
@@ -622,10 +633,38 @@ static User activeUser;
                 }
             }
         }
-        StringSelection stringSelection = new StringSelection(search);
-        Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
-        clipboard.setContents(stringSelection, null);
-        JOptionPane.showMessageDialog(frame, "Die Suche wurde in deine Zwischenablage kopiert");
+        ResultSet rs;
+        String title;
+        while(true){
+            title = JOptionPane.showInputDialog(frame, "Gib einen Titel für deine Suche ein");
+            try {
+                statement = connection.prepareStatement("select * from search where title = ? and username = ?");statement.setString(1, title);
+                statement.setString(2, activeUser.getUsername());
+                rs = statement.executeQuery();
+                if(!rs.next()){
+                    break;
+                }
+                JOptionPane.showMessageDialog(frame, "Du hast diesen Titel bereits verwendet");
+
+            } catch (SQLException e) {
+                throw new RuntimeException(e);
+            }
+        }
+
+
+
+        try {
+            statement = connection.prepareStatement("insert into search(title,text,username)values(?,?,?)");
+            statement.setString(1, title);
+            statement.setString(2, search);
+            statement.setString(3, activeUser.getUsername());
+            statement.executeUpdate();
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+        UI.showMainScreen();
+
+
     }
 
     static void test() {
