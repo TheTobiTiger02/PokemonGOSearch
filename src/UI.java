@@ -61,7 +61,7 @@ static User activeUser;
 
 
 
-        frame = new Frame("PokemonGoSearch", Color.WHITE, 1000, 800, true);
+        frame = new Frame("PokemonGoSearch", new Color(50, 50, 50), 1000, 800, true);
         titlePanel = new Panel(Color.WHITE,Color.BLACK, 0, 0, 1000, 50, true, null);
         titleLabel = new JLabel("Login", SwingConstants.CENTER);
         titleLabel.setBounds(10, 0, 1000, 50);

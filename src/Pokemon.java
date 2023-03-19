@@ -1,8 +1,11 @@
+import java.util.ArrayList;
+
 public class Pokemon {
 
     private int id;
     private String name;
     private String text;
+
 
     public Pokemon(int id, String name, String text){
         this.id = id;
@@ -21,4 +24,5 @@ public class Pokemon {
     public String getText() {
         return text;
     }
+
 }
