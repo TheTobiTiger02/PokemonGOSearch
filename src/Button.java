@@ -70,6 +70,13 @@ public class Button extends JButton implements MouseListener {
     @Override
     public void mousePressed(MouseEvent e) {
 
+
+        if(e.getSource() == UI.loginButton){
+            UI.loginuser();
+        }
+        if(e.getSource() == UI.registerButton){
+            UI.registerUser();
+        }
         if(e.getSource() == UI.addButton){
 
             Object[] options = {"Mit Nummer", "Mit Name"};
@@ -85,7 +92,7 @@ public class Button extends JButton implements MouseListener {
             }
             UI.query = "";
             UI.pokemon = new ArrayList<>();
-            UI.queryPreviewPanel.setVisible(true);
+            UI.searchPreviewPanel.setVisible(true);
             UI.titleLabel.setText("Wähle alle Pokemon aus, die zur Suche hinzugefügt werden sollen");
             UI.showPokemonScreen();
         }
@@ -98,9 +105,9 @@ public class Button extends JButton implements MouseListener {
             UI.showPokemonScreen();
         }
         if(e.getSource() == UI.backButton){
-            UI.pokemonModel.clear();
+            UI.showMainScreen();
+            UI.scrollPane.getVerticalScrollBar().setValue(0);
             UI.fillPokemonModel();
-            //UI.showMainScreen();
         }
     }
 
