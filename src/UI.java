@@ -721,6 +721,10 @@ static User activeUser;
         String title;
         while(true){
             title = JOptionPane.showInputDialog(frame, "Gib einen Titel für deine Suche ein");
+            if(title.equals("")){
+                JOptionPane.showMessageDialog(frame, "Du musst zuerst einen Titel hinzufügen");
+                continue;
+            }
             try {
                 statement = connection.prepareStatement("select * from search where title = ? and username = ?");statement.setString(1, title);
                 statement.setString(2, activeUser.getUsername());
