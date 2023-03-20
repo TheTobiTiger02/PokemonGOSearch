@@ -105,6 +105,9 @@ public class Button extends JButton implements MouseListener {
             System.out.println(UI.selectedSearch);
 
         }
+        if(e.getSource() == UI.deleteButton && UI.searchModel.getSize() != 0 && UI.searchStringList.getSelectedIndex() != -1){
+            UI.deleteSearch();
+        }
         if(e.getSource() == UI.pokemonButton){
             UI.showPokemonScreen();
         }

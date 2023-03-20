@@ -17,7 +17,7 @@ public class UI implements Runnable{
 static Frame frame;
 static JLabel usernameLabel, passwordLabel, titleLabel;
 static Panel loginPanel, searchListPanel, mainButtonPanel, pokemonPanel, pokemonButtonPanel, titlePanel, searchPreviewPanel;
-static Button loginButton, registerButton, addButton,editButton, pokemonButton, backButton, continueButton, completeButton;
+static Button loginButton, registerButton, addButton, editButton, deleteButton, pokemonButton, backButton, continueButton, completeButton;
 static DefaultListModel<String> searchModel, pokemonModel, searchPreviewModel;
 static JList<String> searchStringList, pokemonJList, searchPreviewList;
 static int selectedSearch;
@@ -29,7 +29,6 @@ static JPasswordField passwordTextField;
 static JScrollPane pokemonScrollPane, searchListScrollPane, searchPreviewScrollPane;
 
 static ArrayList<Pokemon> pokemon;
-static ArrayList<SearchString> searchStrings = new ArrayList<>();
 static ArrayList<String> pokemonList;
 
 static String pokemonQuery, searchQuery;
@@ -55,9 +54,7 @@ static User activeUser;
         }
         new PokemonList();
 
-        for(int i = 0; i < 100; i++){
-            searchStrings.add(new SearchString(PokemonList.pokemonList.get(0).getName(), new Pokemon[] {PokemonList.pokemonList.get(0)}, false));
-        }
+
 
 
 
@@ -100,9 +97,7 @@ static User activeUser;
         searchModel = new DefaultListModel<>();
         searchStringList = new JList<>(searchModel);
 
-        for(int i = 0; i < searchStrings.size(); i++){
-            searchModel.addElement(searchStrings.get(i).getTitle());
-        }
+
         searchStringList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         searchStringList.addListSelectionListener(new ListSelectionListener() {
             @Override
@@ -189,9 +184,11 @@ static User activeUser;
         mainButtonPanel = new Panel(new Color(100, 50, 50), Color.BLACK, searchListPanel.getWidth(), searchListPanel.getY(), frame.getWidth() - searchListPanel.getWidth(), frame.getHeight() - titlePanel.getHeight(), false, null);
         addButton = new Button("Hinzufügen", new Color(0x767676), Color.WHITE, 0, 0, 200, 100);
         editButton = new Button("Bearbeiten", new Color(0x767676), Color.WHITE, 0, 100, 200, 100);
-        pokemonButton = new Button("Pokémon", new Color(0x767676), Color.WHITE, 0, 200, 200, 100);
+        deleteButton = new Button("Entfernen", new Color(0x767676), Color.WHITE, 0, 200, 200, 100);
+        pokemonButton = new Button("Pokémon", new Color(0x767676), Color.WHITE, 0, 300, 200, 100);
         mainButtonPanel.add(addButton);
         mainButtonPanel.add(editButton);
+        mainButtonPanel.add(deleteButton);
         mainButtonPanel.add(pokemonButton);
 
 
@@ -199,7 +196,6 @@ static User activeUser;
         pokemonPanel = new Panel(new Color(50, 50, 50),Color.BLACK, 0, titlePanel.getHeight(), 400, frame.getHeight() - titlePanel.getHeight(), false, null);
 
 
-        //JList<String> pokemonJList = new JList<>(PokemonList.pokemonList.toArray(new String[0]));
         pokemonModel = new DefaultListModel<>();
         pokemonJList = new JList<>(pokemonModel);
         pokemonJList.setBackground(new Color(50, 50, 50));
@@ -584,6 +580,18 @@ static User activeUser;
         }
     }
 
+    static void deleteSearch() {
+        try {
+            statement = connection.prepareStatement("delete from search where title = ? and username = ?");
+            statement.setString(1, searchModel.getElementAt(searchStringList.getSelectedIndex()));
+            statement.setString(2, activeUser.getUsername());
+            statement.execute();
+            updateSearchList(activeUser.getUsername());
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     static void sortPokemonList() {
         String query = "";
         if(searchPreviewModel.getSize() == 0){
@@ -685,11 +693,7 @@ static User activeUser;
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
-        /*for(int i = 0; i < pokemonJList.getModel().getSize(); i++){
-            pokemonList.add(pokemonJList.getModel().getElementAt(i));
-        }
 
-         */
     }
 
     static void addSearch(){
@@ -734,6 +738,7 @@ static User activeUser;
 
 
         try {
+
             statement = connection.prepareStatement("insert into search(title,text,username)values(?,?,?)");
             statement.setString(1, title);
             statement.setString(2, search);
