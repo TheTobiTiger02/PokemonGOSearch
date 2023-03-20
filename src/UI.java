@@ -639,6 +639,8 @@ static User activeUser;
         updateSearchList(activeUser.getUsername());
         titleLabel.setText("Hauptmenü");
         pokemonPanel.setVisible(false);
+        continueButton.setVisible(false);
+        completeButton.setVisible(false);
         pokemonButtonPanel.setVisible(false);
         searchListPanel.setVisible(true);
         mainButtonPanel.setVisible(true);
