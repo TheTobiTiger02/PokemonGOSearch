@@ -696,7 +696,7 @@ static User activeUser;
         if(queryAsNumber){
             int number;
             for(int i = 0; i < searchPreviewModel.getSize(); i++){
-                number = Integer.parseInt(searchPreviewModel.getElementAt(i).split("#")[1].substring(0, 4));
+                number = Integer.parseInt(searchPreviewModel.getElementAt(i).split("#")[1].split("\\)")[0]);
                 search += String.valueOf(number);
                 if(i + 1 < searchPreviewModel.size()){
                     search += ",";
