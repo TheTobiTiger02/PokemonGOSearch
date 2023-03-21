@@ -31,12 +31,15 @@ static JScrollPane pokemonScrollPane, searchListScrollPane, searchPreviewScrollP
 static ArrayList<Pokemon> pokemon;
 static ArrayList<String> pokemonList;
 
-static String pokemonQuery, searchQuery;
+static String pokemonQuery = "select * from pokemon";
+static String searchQuery;
+static String editingTitle;
 
-static boolean isAdding;
+static boolean isAdding, isEditing;
 
 static Connection connection;
 static PreparedStatement statement;
+static ResultSet resultSet;
 
 static User activeUser;
 
@@ -143,9 +146,9 @@ static User activeUser;
                         statement = connection.prepareStatement("select * from search where title = ? and username = ?");
                         statement.setString(1, searchModel.getElementAt(searchStringList.getSelectedIndex()));
                         statement.setString(2, activeUser.getUsername());
-                        ResultSet rs = statement.executeQuery();
-                        if(rs.next()){
-                            StringSelection stringSelection = new StringSelection(rs.getString("text"));
+                        resultSet = statement.executeQuery();
+                        if(resultSet.next()){
+                            StringSelection stringSelection = new StringSelection(resultSet.getString("text"));
                             Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
                             clipboard.setContents(stringSelection, null);
                             JOptionPane.showMessageDialog(frame, "Suche wurde in die Zwischenablage kopiert");
@@ -200,7 +203,7 @@ static User activeUser;
         pokemonJList = new JList<>(pokemonModel);
         pokemonJList.setBackground(new Color(50, 50, 50));
         pokemonJList.setForeground(Color.WHITE);
-        fillPokemonModel();
+        fillPokemonModel(pokemonQuery);
 
 
 
@@ -209,17 +212,15 @@ static User activeUser;
             @Override
             public void valueChanged(ListSelectionEvent e) {
                 // Get the selected item from the JList
-                String selectedItem = pokemonJList.getSelectedValue();
 
-
-                // Print the selected item to the console
-                //System.out.println("Selected item: " + selectedItem);
             }
         });
+
         pokemonJList.addMouseListener(new MouseListener() {
             @Override
             public void mouseClicked(MouseEvent e) {
-                if (e.getClickCount() == 2 && isAdding) {
+
+                if (e.getClickCount() == 2 && (isAdding || isEditing)) {
 
                     searchPreviewModel.addElement(pokemonModel.getElementAt(pokemonJList.getSelectedIndex()));
                     pokemonModel.remove(pokemonJList.getSelectedIndex());
@@ -233,7 +234,6 @@ static User activeUser;
                     }
                     for(int i = 0; i < searchPreviewModel.size(); i++){
                         pokemonQuery += searchPreviewModel.getElementAt(i).split("#")[1].split("\\)")[0];
-                        searchQuery += searchPreviewModel.getElementAt(i).split("#")[1].split("\\)")[0];
                         if(i + 1 < searchPreviewModel.getSize()){
                             pokemonQuery += " and numberChar != ";
                             searchQuery += " or numberChar = ";
@@ -260,11 +260,7 @@ static User activeUser;
 
 
 
-                    //String selectedItem = pokemonJList.getSelectedValue();
-                    //System.out.println(pokemonJList.getSelectedIndex());
 
-                    // Print the selected item to the console
-                    //System.out.println("Double-clicked item: " + selectedItem);
                 }
             }
 
@@ -330,12 +326,10 @@ static User activeUser;
                         }
                     }
                     pokemonModel.clear();
-                    System.out.println(statement);
+                    resultSet = statement.executeQuery();
 
-                    ResultSet rs = statement.executeQuery();
-
-                    while(rs.next()){
-                        pokemonModel.addElement(rs.getString("name") + " (#" + rs.getString("number") + ")");
+                    while(resultSet.next()){
+                        pokemonModel.addElement(resultSet.getString("name") + " (#" + resultSet.getString("number") + ")");
                     }
 
 
@@ -374,11 +368,7 @@ static User activeUser;
             @Override
             public void valueChanged(ListSelectionEvent e) {
                 // Get the selected item from the JList
-                String selectedItem = searchPreviewList.getSelectedValue();
 
-
-                // Print the selected item to the console
-                //System.out.println("Selected item: " + selectedItem);
             }
         });
         searchPreviewList.addMouseListener(new MouseListener() {
@@ -454,7 +444,6 @@ static User activeUser;
                 // Get the search query
                 String search = searchPreviewSearchField.getText();
 
-
                 try {
 
 
@@ -475,10 +464,10 @@ static User activeUser;
                     }
                     searchPreviewModel.clear();
 
-                    ResultSet rs = statement.executeQuery();
+                    resultSet = statement.executeQuery();
 
-                    while(rs.next()){
-                        searchPreviewModel.addElement(rs.getString("name") + " (#" + rs.getString("number") + ")");
+                    while(resultSet.next()){
+                        searchPreviewModel.addElement(resultSet.getString("name") + " (#" + resultSet.getString("number") + ")");
                     }
 
 
@@ -523,10 +512,10 @@ static User activeUser;
             statement = connection.prepareStatement("select * from user where username = ? and password = ?");
             statement.setString(1, usernameTextField.getText());
             statement.setString(2, passwordTextField.getText());
-            ResultSet rs = statement.executeQuery();
-            if(rs.next()){
-                JOptionPane.showMessageDialog(frame, "Willkommen " + rs.getString("username"));
-                activeUser = new User(rs.getString("username"), rs.getString("password"));
+            resultSet = statement.executeQuery();
+            if(resultSet.next()){
+                JOptionPane.showMessageDialog(frame, "Willkommen " + resultSet.getString("username"));
+                activeUser = new User(resultSet.getString("username"), resultSet.getString("password"));
                 loginPanel.setVisible(false);
                 showMainScreen();
             }
@@ -570,11 +559,58 @@ static User activeUser;
             statement = connection.prepareStatement("select * from user where username = ? and password = ?");
             statement.setString(1, usernameTextField.getText());
             statement.setString(2, passwordTextField.getText());
-            ResultSet rs = statement.executeQuery();
-            if(rs.next()){
-                activeUser = new User(rs.getString("username"), rs.getString("password"));
+            resultSet = statement.executeQuery();
+            if(resultSet.next()){
+                activeUser = new User(resultSet.getString("username"), resultSet.getString("password"));
                 updateSearchList(activeUser.getUsername());
             }
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    static void editSearch() {
+        try {
+            statement = connection.prepareStatement("select * from search where title = ? and username = ?");
+            statement.setString(1, searchModel.getElementAt(searchStringList.getSelectedIndex()));
+            statement.setString(2, activeUser.getUsername());
+            resultSet = statement.executeQuery();
+            if(resultSet.next()){
+                String search = resultSet.getString("text");
+                try{
+                    int i = Integer.parseInt(search.split(",")[0]);
+                    System.out.println("Jo");
+                    queryAsNumber = true;
+                }
+                catch(NumberFormatException nfe){
+                    System.out.println("No");
+                    queryAsNumber = false;
+                }
+                editingTitle = resultSet.getString("title");
+                if(queryAsNumber){
+                    pokemonQuery = "select * from pokemon where (numberChar != '" + search.replace(",", "' and numberChar != '");
+                    pokemonQuery += "')";
+                    searchQuery = pokemonQuery.replace("and", "or");
+                    searchQuery = searchQuery.replace("!", "");
+                }
+                else{
+                    pokemonQuery = "select * from pokemon where (name != '" + search.replace(",", "' and name != '");
+                    pokemonQuery += "')";
+                    searchQuery = pokemonQuery.replace("and", "or");
+                    searchQuery = searchQuery.replace("!", "");
+                }
+
+
+                fillPokemonModel(pokemonQuery);
+                fillPreviewModel(searchQuery);
+                isEditing = true;
+                searchPreviewPanel.setVisible(true);
+                continueButton.setVisible(true);
+                completeButton.setVisible(true);
+                UI.titleLabel.setText("Wähle alle Pokemon aus, die zur Suche hinzugefügt werden sollen");
+                showPokemonScreen();
+            }
+            
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
@@ -612,9 +648,9 @@ static User activeUser;
         pokemonModel.clear();
         try {
             statement = connection.prepareStatement(query);
-            ResultSet rs = statement.executeQuery();
-            while(rs.next()){
-                pokemonModel.addElement(rs.getString("name") + " (#" + rs.getString("number") + ")");
+            resultSet = statement.executeQuery();
+            while(resultSet.next()){
+                pokemonModel.addElement(resultSet.getString("name") + " (#" + resultSet.getString("number") + ")");
             }
         } catch (SQLException e) {
             throw new RuntimeException(e);
@@ -635,9 +671,9 @@ static User activeUser;
         searchPreviewModel.clear();
         try {
             statement = connection.prepareStatement(query);
-            ResultSet rs = statement.executeQuery();
-            while(rs.next()){
-                searchPreviewModel.addElement(rs.getString("name") + " (#" + rs.getString("number") + ")");            }
+            resultSet = statement.executeQuery();
+            while(resultSet.next()){
+                searchPreviewModel.addElement(resultSet.getString("name") + " (#" + resultSet.getString("number") + ")");            }
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
@@ -668,9 +704,9 @@ static User activeUser;
         try {
             statement = connection.prepareStatement("select * from search where username = ?");
             statement.setString(1, username);
-            ResultSet rs = statement.executeQuery();
-            while(rs.next()){
-                searchModel.addElement(rs.getString("title"));
+            resultSet = statement.executeQuery();
+            while(resultSet.next()){
+                searchModel.addElement(resultSet.getString("title"));
             }
         } catch (SQLException e) {
             throw new RuntimeException(e);
@@ -679,21 +715,37 @@ static User activeUser;
 
 
 
-    static void fillPokemonModel() {
+    static void fillPokemonModel(String pokemonQuery) {
 
-        pokemonQuery = "select * from pokemon";
-        UI.pokemonModel.clear();
+
+        pokemonModel.clear();
         try {
             statement = connection.prepareStatement(pokemonQuery);
-            ResultSet rs = statement.executeQuery();
+            resultSet = statement.executeQuery();
             pokemonList = new ArrayList<>();
 
-            while(rs.next()){
-                pokemonModel.addElement(rs.getString("name") + " (#" + rs.getString("number") + ")");            }
+            while(resultSet.next()){
+                pokemonModel.addElement(resultSet.getString("name") + " (#" + resultSet.getString("number") + ")");            }
         } catch (SQLException e) {
+            System.out.println(statement);
             throw new RuntimeException(e);
         }
 
+
+    }
+
+    static void fillPreviewModel(String searchQuery){
+        searchPreviewModel.clear();
+        try {
+            statement = connection.prepareStatement(searchQuery);
+            resultSet = statement.executeQuery();
+            pokemonList = new ArrayList<>();
+
+            while(resultSet.next()){
+                searchPreviewModel.addElement(resultSet.getString("name") + " (#" + resultSet.getString("number") + ")");            }
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     static void addSearch(){
@@ -717,39 +769,60 @@ static User activeUser;
                 }
             }
         }
-        ResultSet rs;
         String title;
-        while(true){
-            title = JOptionPane.showInputDialog(frame, "Gib einen Titel für deine Suche ein");
-            if(title.equals("")){
-                JOptionPane.showMessageDialog(frame, "Du musst zuerst einen Titel hinzufügen");
-                continue;
+        if(isEditing){
+            int reply = JOptionPane.showConfirmDialog(frame, "Möchtest du den Titel der Suche ändern?", "Neuer Titel", JOptionPane.YES_NO_OPTION);
+            if(reply == JOptionPane.YES_OPTION){
+                title = JOptionPane.showInputDialog(frame, "Neuer Titel");
+            }
+            else{
+                title = editingTitle;
             }
             try {
-                statement = connection.prepareStatement("select * from search where title = ? and username = ?");statement.setString(1, title);
-                statement.setString(2, activeUser.getUsername());
-                rs = statement.executeQuery();
-                if(!rs.next()){
-                    break;
-                }
-                JOptionPane.showMessageDialog(frame, "Du hast diesen Titel bereits verwendet");
-
+                statement = connection.prepareStatement("update search set text = ?, title = ? where title = ? and username = ?");
+                statement.setString(1, search);
+                statement.setString(2, title);
+                statement.setString(3, editingTitle);
+                statement.setString(4, activeUser.getUsername());
+                statement.executeUpdate();
             } catch (SQLException e) {
                 throw new RuntimeException(e);
             }
         }
+        else {
 
 
+            while (true) {
+                title = JOptionPane.showInputDialog(frame, "Gib einen Titel für deine Suche ein");
+                if (title.equals("")) {
+                    JOptionPane.showMessageDialog(frame, "Du musst zuerst einen Titel hinzufügen");
+                    continue;
+                }
+                try {
+                    statement = connection.prepareStatement("select * from search where title = ? and username = ?");
+                    statement.setString(1, title);
+                    statement.setString(2, activeUser.getUsername());
+                    resultSet = statement.executeQuery();
+                    if (!resultSet.next()) {
+                        break;
+                    }
+                    JOptionPane.showMessageDialog(frame, "Du hast diesen Titel bereits verwendet");
 
-        try {
+                } catch (SQLException e) {
+                    throw new RuntimeException(e);
+                }
+            }
 
-            statement = connection.prepareStatement("insert into search(title,text,username)values(?,?,?)");
-            statement.setString(1, title);
-            statement.setString(2, search);
-            statement.setString(3, activeUser.getUsername());
-            statement.executeUpdate();
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
+            try {
+
+                statement = connection.prepareStatement("insert into search(title,text,username)values(?,?,?)");
+                statement.setString(1, title);
+                statement.setString(2, search);
+                statement.setString(3, activeUser.getUsername());
+                statement.executeUpdate();
+            } catch (SQLException e) {
+                throw new RuntimeException(e);
+            }
         }
         UI.showMainScreen();
 

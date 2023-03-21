@@ -92,6 +92,7 @@ public class Button extends JButton implements MouseListener {
             }
             UI.query = "";
             UI.isAdding = true;
+            UI.isEditing = false;
             UI.pokemon = new ArrayList<>();
             UI.searchPreviewPanel.setVisible(true);
             UI.continueButton.setVisible(true);
@@ -101,18 +102,16 @@ public class Button extends JButton implements MouseListener {
             UI.showPokemonScreen();
         }
         if(e.getSource() == UI.editButton){
-            UI.selectedSearch = UI.searchStringList.getSelectedIndex();
-            System.out.println(UI.selectedSearch);
-
+            UI.editSearch();
         }
-        if(e.getSource() == UI.deleteButton && UI.searchModel.getSize() != 0 && UI.searchStringList.getSelectedIndex() != -1){
+        if(e.getSource() == UI.deleteButton && UI.searchStringList.getSelectedIndex() != -1){
             UI.deleteSearch();
         }
         if(e.getSource() == UI.pokemonButton){
             UI.showPokemonScreen();
         }
         if(e.getSource() == UI.backButton){
-            UI.fillPokemonModel();
+            UI.fillPokemonModel("select * from pokemon");
             UI.continueButton.setVisible(false);
             UI.completeButton.setVisible(false);
             UI.isAdding = false;
