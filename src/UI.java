@@ -195,7 +195,7 @@ static User activeUser;
         //mainListPanel.setBackground(new Color(50, 50, 50));
 
 
-        mainButtonPanel = new Panel(new Color(100, 50, 50), Color.BLACK, searchListPanel.getWidth(), searchListPanel.getY(), frame.getWidth() - searchListPanel.getWidth(), frame.getHeight() - titlePanel.getHeight(), false, null);
+        mainButtonPanel = new Panel(new Color(50, 50, 50), Color.BLACK, searchListPanel.getWidth(), searchListPanel.getY(), frame.getWidth() - searchListPanel.getWidth(), frame.getHeight() - titlePanel.getHeight(), false, null);
         addButton = new Button("Hinzufügen", new Color(0x767676), Color.WHITE, 0, 0, 200, 100);
         editButton = new Button("Bearbeiten", new Color(0x767676), Color.WHITE, 0, 100, 200, 100);
         deleteButton = new Button("Entfernen", new Color(0x767676), Color.WHITE, 0, 200, 200, 100);
@@ -278,6 +278,9 @@ static User activeUser;
 
             private void updateList() {
                 // Get the search query
+                if(pokemonModel.getSize() == 0){
+                    return;
+                }
                 String search = searchField.getText();
 
                 try {
@@ -315,7 +318,7 @@ static User activeUser;
         pokemonPanel.add(searchField);
         pokemonPanel.add(pokemonScrollPane);
 
-        pokemonButtonPanel = new Panel(new Color(100, 50, 50), Color.WHITE, 800, titlePanel.getHeight(), 200, frame.getHeight() - titlePanel.getHeight(), false, null);
+        pokemonButtonPanel = new Panel(new Color(50, 50, 50), Color.WHITE, 800, titlePanel.getHeight(), 200, frame.getHeight() - titlePanel.getHeight(), false, null);
         backButton = new Button("Zurück", new Color(0x767676), Color.WHITE, 0, 0, 185, 100);
         continueButton = new Button("Weiter", new Color(0x767676), Color.WHITE, 0, 100, 185, 100);
         continueButton.setVisible(false);
@@ -394,6 +397,9 @@ static User activeUser;
 
             private void updateList() {
                 // Get the search query
+                if(searchPreviewModel.getSize() == 0){
+                    return;
+                }
                 String search = searchPreviewSearchField.getText();
 
                 try {
