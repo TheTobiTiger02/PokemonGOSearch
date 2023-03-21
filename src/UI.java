@@ -82,7 +82,7 @@ static User activeUser;
         titlePanel.add(titleLabel);
 
         loginPanel = new Panel(new Color(50, 50, 50), Color.WHITE, 0, titlePanel.getHeight(), frame.getWidth(), frame.getHeight() - titlePanel.getHeight(), true, null);
-        loginButton = new Button("Anmelden", new Color(0x767676), Color.WHITE, 390, 400 , 100, 50);
+        loginButton = new Button("Anmelden1", new Color(0x767676), Color.WHITE, 390, 400 , 100, 50);
         loginButton.setFont(new Font("Times New Roman", Font.BOLD, 18));
         registerButton = new Button("Registrieren", new Color(0x767676), Color.WHITE, 490, 400, 100, 50);
         registerButton.setFont(new Font("Times New Roman", Font.BOLD, 18));
