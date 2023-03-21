@@ -1,4 +1,5 @@
 import javax.swing.*;
+import javax.swing.border.Border;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.event.ListSelectionEvent;
@@ -10,26 +11,26 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.sql.*;
 import java.util.ArrayList;
+import java.util.Arrays;
 
 public class UI implements Runnable{
 
 
 static Frame frame;
-static JLabel usernameLabel, passwordLabel, titleLabel;
-static Panel loginPanel, searchListPanel, mainButtonPanel, pokemonPanel, pokemonButtonPanel, titlePanel, searchPreviewPanel;
+static JLabel usernameLabel, passwordLabel, titleLabel, addattributeLabel, removeattributeLabel;
+static Panel loginPanel, searchListPanel, mainButtonPanel, pokemonPanel, pokemonButtonPanel, titlePanel, searchPreviewPanel, addAttributePanel, removeAttributePanel;
 static Button loginButton, registerButton, addButton, editButton, deleteButton, pokemonButton, backButton, continueButton, completeButton;
 static DefaultListModel<String> searchModel, pokemonModel, searchPreviewModel;
 static JList<String> searchStringList, pokemonJList, searchPreviewList;
-static int selectedSearch;
 static boolean queryAsNumber;
 static String query;
-static JTextArea queryPreviewTextField;
 static JTextField usernameTextField, searchField, searchPreviewSearchField;
 static JPasswordField passwordTextField;
 static JScrollPane pokemonScrollPane, searchListScrollPane, searchPreviewScrollPane;
 
 static ArrayList<Pokemon> pokemon;
-static ArrayList<String> pokemonList;
+static ArrayList<String> pokemonList, attributes;
+static ArrayList<CheckBox> addAttributeCheckBoxes, removeAttributeCheckBoxes;
 
 static String pokemonQuery = "select * from pokemon";
 static String searchQuery;
@@ -49,6 +50,11 @@ static User activeUser;
 
     public UI() {
 
+
+        attributes = new ArrayList<>();
+
+
+
         try {
             connection = DriverManager.getConnection("jdbc:mysql://sql7.freesqldatabase.com/sql7606827", "sql7606827", "uAPhstaBJb");
 
@@ -57,10 +63,15 @@ static User activeUser;
         }
         new PokemonList();
 
-
-
-
-
+        try {
+            statement = connection.prepareStatement("select * from attributes");
+            resultSet = statement.executeQuery();
+            while(resultSet.next()){
+                attributes.add(resultSet.getString("title"));
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
 
         frame = new Frame("PokemonGoSearch", new Color(50, 50, 50), 1000, 800, true);
         titlePanel = new Panel(Color.WHITE,Color.BLACK, 0, 0, 1000, 50, true, null);
@@ -480,6 +491,61 @@ static User activeUser;
         searchPreviewPanel.add(searchPreviewSearchField, BorderLayout.NORTH);
         searchPreviewPanel.add(searchPreviewScrollPane, BorderLayout.CENTER);
 
+        Border blackline = BorderFactory.createMatteBorder(2, 2, 2, 2, Color.WHITE);
+        addAttributePanel = new Panel(new Color(50, 50, 50),Color.BLACK, 275, titlePanel.getHeight(), 200, frame.getHeight() - titlePanel.getHeight(), false, null);
+        addattributeLabel = new JLabel("Hinzufügen", SwingConstants.CENTER);
+        addattributeLabel.setFont(new Font("Times New Roman", Font.BOLD, 20));
+        addattributeLabel.setBounds(0, 0, addAttributePanel.getWidth(), 30);
+        addattributeLabel.setForeground(Color.WHITE);
+        addattributeLabel.setBackground(new Color(50, 50, 50));
+        addattributeLabel.setBorder(blackline);
+        addAttributePanel.setBorder(blackline);
+        addAttributePanel.add(addattributeLabel);
+
+
+        addAttributeCheckBoxes = new ArrayList<>();
+        int y = 30;
+        for(int i = 0; i < attributes.size(); i++){
+            CheckBox c = new CheckBox(attributes.get(i));
+            c.setBackground(new Color(50, 50, 50));
+            c.setForeground(Color.WHITE);
+            c.setBounds(2, y, 100, 20);
+            addAttributeCheckBoxes.add(c);
+            addAttributePanel.add(addAttributeCheckBoxes.get(i));
+            y += 20;
+        }
+
+
+        removeAttributePanel = new Panel(new Color(50, 50, 50),Color.BLACK, 475, titlePanel.getHeight(), 200, frame.getHeight() - titlePanel.getHeight(), false, null);
+        removeattributeLabel = new JLabel("Entfernen", SwingConstants.CENTER);
+        removeattributeLabel.setFont(new Font("Times New Roman", Font.BOLD, 20));
+        removeattributeLabel.setBounds(0, 0, removeAttributePanel.getWidth(), 30);
+        removeattributeLabel.setForeground(Color.WHITE);
+        removeattributeLabel.setBackground(new Color(50, 50, 50));
+        removeattributeLabel.setBorder(blackline);
+        removeAttributePanel.setBorder(blackline);
+        removeAttributePanel.add(removeattributeLabel);
+
+
+
+        removeAttributeCheckBoxes = new ArrayList<>();
+        y = 30;
+        for(int i = 0; i < attributes.size(); i++){
+            CheckBox c = new CheckBox(attributes.get(i));
+            c.setBackground(new Color(50, 50, 50));
+            c.setForeground(Color.WHITE);
+            c.setBounds(2, y, 100, 20);
+            removeAttributeCheckBoxes.add(c);
+            removeAttributePanel.add(removeAttributeCheckBoxes.get(i));
+            y += 20;
+        }
+
+
+
+
+
+
+
 
 
         frame.getContentPane().add(loginPanel);
@@ -489,6 +555,8 @@ static User activeUser;
         frame.getContentPane().add(pokemonPanel);
         frame.getContentPane().add(pokemonButtonPanel);
         frame.getContentPane().add(searchPreviewPanel);
+        frame.getContentPane().add(addAttributePanel);
+        frame.getContentPane().add(removeAttributePanel);
 
         frame.revalidate();
         frame.repaint();

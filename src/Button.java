@@ -13,7 +13,6 @@ public class Button extends JButton implements MouseListener {
 
 
     public Button(String text, Color background, Color foreground, Font font, Border border, int x, int y, int width, int height){
-
         this.setText(text);
         this.setBackground(background);
         this.setForeground(foreground);
@@ -119,7 +118,12 @@ public class Button extends JButton implements MouseListener {
             UI.pokemonScrollPane.getVerticalScrollBar().setValue(0);
         }
         if(e.getSource() == UI.continueButton){
-
+            /*UI.pokemonButtonPanel.setVisible(false);
+            UI.pokemonPanel.setVisible(false);
+            UI.searchPreviewPanel.setVisible(false);
+            UI.addAttributePanel.setVisible(true);
+            UI.removeAttributePanel.setVisible(true);
+             */
         }
         if(e.getSource() == UI.completeButton){
             UI.addSearch();
