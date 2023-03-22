@@ -61,7 +61,6 @@ static User activeUser;
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
-        new PokemonList();
 
         try {
             statement = connection.prepareStatement("select * from attributes");
