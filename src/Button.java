@@ -92,7 +92,6 @@ public class Button extends JButton implements MouseListener {
             UI.query = "";
             UI.isAdding = true;
             UI.isEditing = false;
-            UI.pokemon = new ArrayList<>();
             UI.searchPreviewPanel.setVisible(true);
             UI.continueButton.setVisible(true);
             UI.completeButton.setVisible(true);
@@ -116,6 +115,9 @@ public class Button extends JButton implements MouseListener {
         }
         if(e.getSource() == UI.pokemonButton){
             UI.showPokemonScreen();
+        }
+        if(e.getSource() == UI.settingsButton){
+            UI.showSettingsScreen();
         }
         if(e.getSource() == UI.backButton){
             UI.fillPokemonModel();

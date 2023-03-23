@@ -18,8 +18,8 @@ public class UI implements Runnable{
 
 static Frame frame;
 static JLabel usernameLabel, passwordLabel, titleLabel, addattributeLabel, removeattributeLabel;
-static Panel loginPanel, searchListPanel, mainButtonPanel, pokemonPanel, addPokemonPanel, pokemonButtonPanel, titlePanel, searchPreviewPanel, addAttributePanel, removeAttributePanel;
-static Button loginButton, registerButton, addButton, editButton, deleteButton, pokemonButton, addPokemonButton, removePokemonButton, backButton, continueButton, completeButton;
+static Panel loginPanel, searchListPanel, mainButtonPanel, pokemonPanel, addPokemonPanel, pokemonButtonPanel, titlePanel, settingsPanel, searchPreviewPanel, addAttributePanel, removeAttributePanel;
+static Button loginButton, registerButton, addButton, editButton, deleteButton, pokemonButton, settingsButton, addPokemonButton, removePokemonButton, backButton, continueButton, completeButton;
 static DefaultListModel<String> searchModel, pokemonModel, searchPreviewModel;
 static JList<String> searchStringList, pokemonJList, searchPreviewList;
 static boolean queryAsNumber;
@@ -28,7 +28,6 @@ static JTextField usernameTextField, searchField, searchPreviewSearchField;
 static JPasswordField passwordTextField;
 static JScrollPane pokemonScrollPane, searchListScrollPane, searchPreviewScrollPane;
 
-static ArrayList<Pokemon> pokemon;
 static ArrayList<String> pokemonList, attributes;
 static ArrayList<CheckBox> addAttributeCheckBoxes, removeAttributeCheckBoxes;
 
@@ -71,6 +70,8 @@ static User activeUser;
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
+
+
 
         frame = new Frame("PokemonGoSearch", new Color(50, 50, 50), 1000, 800, true);
         titlePanel = new Panel(Color.WHITE,Color.BLACK, 0, 0, 1000, 50, true, null);
@@ -199,10 +200,12 @@ static User activeUser;
         editButton = new Button("Bearbeiten", new Color(0x767676), Color.WHITE, 0, 100, 200, 100);
         deleteButton = new Button("Entfernen", new Color(0x767676), Color.WHITE, 0, 200, 200, 100);
         pokemonButton = new Button("Pokémon", new Color(0x767676), Color.WHITE, 0, 300, 200, 100);
+        settingsButton = new Button("Einstellungen", new Color(0x767676), Color.WHITE, 0, 400, 200, 100);
         mainButtonPanel.add(addButton);
         mainButtonPanel.add(editButton);
         mainButtonPanel.add(deleteButton);
         mainButtonPanel.add(pokemonButton);
+        mainButtonPanel.add(settingsButton);
 
 
 
@@ -443,6 +446,9 @@ static User activeUser;
         addPokemonPanel.add(addPokemonButton);
         addPokemonPanel.add(removePokemonButton);
 
+        settingsPanel = new Panel(new Color(50, 50, 50), Color.WHITE, 0, titlePanel.getHeight(), frame.getWidth(), frame.getHeight() - titlePanel.getHeight(), false, null);
+
+
         Border blackline = BorderFactory.createMatteBorder(2, 2, 2, 2, Color.WHITE);
         addAttributePanel = new Panel(new Color(50, 50, 50),Color.BLACK, 275, titlePanel.getHeight(), 200, frame.getHeight() - titlePanel.getHeight(), false, null);
         addattributeLabel = new JLabel("Hinzufügen", SwingConstants.CENTER);
@@ -663,8 +669,7 @@ static User activeUser;
             searchQuery += ")";
         }
 
-        System.out.println(pokemonQuery);
-        System.out.println(searchQuery);
+
         fillPokemonModel();
         fillPreviewModel();
 
@@ -683,7 +688,6 @@ static User activeUser;
                     queryAsNumber = true;
                 }
                 catch(NumberFormatException nfe){
-                    System.out.println("No");
                     queryAsNumber = false;
                 }
                 editingTitle = resultSet.getString("title");
@@ -727,6 +731,12 @@ static User activeUser;
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    static void showSettingsScreen() {
+        searchListPanel.setVisible(false);
+        mainButtonPanel.setVisible(false);
+        settingsPanel.setVisible(true);
     }
 
 
@@ -782,7 +792,6 @@ static User activeUser;
             while(resultSet.next()){
                 pokemonModel.addElement(resultSet.getString("name") + " (#" + resultSet.getString("number") + ")");            }
         } catch (SQLException e) {
-            System.out.println(statement);
             throw new RuntimeException(e);
         }
 
