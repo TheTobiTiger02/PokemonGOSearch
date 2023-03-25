@@ -116,9 +116,7 @@ public class Button extends JButton implements MouseListener {
         if(e.getSource() == UI.pokemonButton){
             UI.showPokemonScreen();
         }
-        if(e.getSource() == UI.settingsButton){
-            UI.showSettingsScreen();
-        }
+
         if(e.getSource() == UI.backButton){
             UI.fillPokemonModel();
             UI.continueButton.setVisible(false);

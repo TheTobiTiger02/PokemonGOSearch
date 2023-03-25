@@ -30,7 +30,7 @@ public class UI implements Runnable{
     static JPasswordField passwordTextField;
     static JScrollPane pokemonScrollPane, searchListScrollPane, searchPreviewScrollPane;
 
-    static ArrayList<Pokemon> pokemon;
+    
     static ArrayList<String> pokemonList, attributes;
     static ArrayList<CheckBox> addAttributeCheckBoxes, removeAttributeCheckBoxes;
 
