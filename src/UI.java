@@ -21,7 +21,7 @@ public class UI implements Runnable{
     static Frame frame;
     static JLabel usernameLabel, passwordLabel, titleLabel, addattributeLabel, removeattributeLabel;
     static Panel loginPanel, searchListPanel, mainButtonPanel, pokemonPanel, addPokemonPanel, pokemonButtonPanel, titlePanel, searchPreviewPanel, addAttributePanel, removeAttributePanel;
-    static Button loginButton, registerButton, addButton, editButton, deleteButton, pokemonButton, addPokemonButton, removePokemonButton, backButton, continueButton, completeButton;
+    static Button loginButton, registerButton, addButton, editButton, deleteButton, pokemonButton, importPokemonButton, addPokemonButton, removePokemonButton, backButton, continueButton, completeButton;
     static DefaultListModel<String> searchModel, pokemonModel, searchPreviewModel;
     static JList<String> searchStringList, pokemonJList, searchPreviewList;
     static boolean queryAsNumber;
@@ -30,7 +30,7 @@ public class UI implements Runnable{
     static JPasswordField passwordTextField;
     static JScrollPane pokemonScrollPane, searchListScrollPane, searchPreviewScrollPane;
 
-    
+
     static ArrayList<String> pokemonList, attributes;
     static ArrayList<CheckBox> addAttributeCheckBoxes, removeAttributeCheckBoxes;
 
@@ -161,7 +161,7 @@ public class UI implements Runnable{
         searchStringList.addMouseListener(new MouseListener() {
             @Override
             public void mouseClicked(MouseEvent e) {
-                if (e.getClickCount() == 2) {
+                if (e.getClickCount() == 2 && searchStringList.getSelectedIndex() != -1) {
                     try {
                         statement = connection.prepareStatement("select * from search where title = ? and username = ?");
                         statement.setString(1, searchModel.getElementAt(searchStringList.getSelectedIndex()));
@@ -209,10 +209,13 @@ public class UI implements Runnable{
         editButton = new Button("Bearbeiten", new Color(0x767676), Color.WHITE, 0, 100, 200, 100);
         deleteButton = new Button("Entfernen", new Color(0x767676), Color.WHITE, 0, 200, 200, 100);
         pokemonButton = new Button("Pokémon", new Color(0x767676), Color.WHITE, 0, 300, 200, 100);
+        importPokemonButton = new Button("Pokémon hinzufügen", new Color(0x767676), Color.WHITE, 0, 400, 200, 100);
+        importPokemonButton.setVisible(false);
         mainButtonPanel.add(addButton);
         mainButtonPanel.add(editButton);
         mainButtonPanel.add(deleteButton);
         mainButtonPanel.add(pokemonButton);
+        mainButtonPanel.add(importPokemonButton);
 
 
 
@@ -512,9 +515,10 @@ public class UI implements Runnable{
 
     }
 
-    static void fillPokemon() {
+    static void importPokemon() {
         try{
-            File file = new File("PokemonList.txt");
+            File file = new File(JOptionPane.showInputDialog(frame, "Gib den Dateipfad zur Textdatei mit den zu importierenden Pokemon an. (Ein Pokemon pro Zeile im Format name,nummer)"));
+            System.out.println(file.getName());
             Scanner sc = new Scanner(file);
             String line;
             while(sc.hasNextLine()){
@@ -527,7 +531,7 @@ public class UI implements Runnable{
             }
         }
         catch(Exception e){
-            e.printStackTrace();
+            
         }
     }
 
@@ -545,7 +549,10 @@ public class UI implements Runnable{
             resultSet = statement.executeQuery();
             if(resultSet.next()){
                 JOptionPane.showMessageDialog(frame, "Willkommen " + resultSet.getString("username"));
-                activeUser = new User(resultSet.getString("username"), resultSet.getString("password"));
+                activeUser = new User(resultSet.getString("username"), resultSet.getString("password"), resultSet.getString("status"));
+                if(activeUser.getStatus().equals("admin")){
+                    importPokemonButton.setVisible(true);
+                }
                 loginPanel.setVisible(false);
                 showMainScreen();
             }
@@ -591,7 +598,10 @@ public class UI implements Runnable{
             statement.setString(2, passwordTextField.getText());
             resultSet = statement.executeQuery();
             if(resultSet.next()){
-                activeUser = new User(resultSet.getString("username"), resultSet.getString("password"));
+                activeUser = new User(resultSet.getString("username"), resultSet.getString("password"), resultSet.getString("status"));
+                if(activeUser.getStatus().equals("admin")){
+                    importPokemonButton.setVisible(true);
+                }
                 updateSearchList(activeUser.getUsername());
             }
         } catch (SQLException e) {
@@ -600,9 +610,6 @@ public class UI implements Runnable{
     }
 
     static void addPokemonToPreview() {
-        if(pokemonJList.getSelectedIndex() == -1){
-            return;
-        }
 
         if(pokemonModelSize - pokemonJList.getSelectedIndices().length == 0){
             pokemonQuery = "";
@@ -640,9 +647,7 @@ public class UI implements Runnable{
     }
 
     static void removePokemonFromPreview(){
-        if(searchPreviewList.getSelectedIndex() == -1){
-            return;
-        }
+
         if(searchModelSize - searchPreviewList.getSelectedIndices().length == 0){
 
             pokemonQuery = "select * from pokemon";
@@ -892,11 +897,18 @@ public class UI implements Runnable{
 
 
             while (true) {
-                title = JOptionPane.showInputDialog(frame, "Gib einen Titel für deine Suche ein");
-                if (title.equals("")) {
-                    JOptionPane.showMessageDialog(frame, "Du musst zuerst einen Titel hinzufügen");
-                    continue;
+                try{
+                    title = JOptionPane.showInputDialog(frame, "Gib einen Titel für deine Suche ein");
+                    if (title.equals("")) {
+                        JOptionPane.showMessageDialog(frame, "Du musst zuerst einen Titel hinzufügen");
+                        continue;
+                    }
                 }
+                catch(Exception e){
+                    return;
+                }
+
+
                 try {
                     statement = connection.prepareStatement("select * from search where title = ? and username = ?");
                     statement.setString(1, title);
@@ -908,6 +920,7 @@ public class UI implements Runnable{
                     JOptionPane.showMessageDialog(frame, "Du hast diesen Titel bereits verwendet");
 
                 } catch (SQLException e) {
+                    System.out.println("Test");
                     throw new RuntimeException(e);
                 }
             }

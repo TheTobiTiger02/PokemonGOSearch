@@ -101,13 +101,13 @@ public class Button extends JButton implements MouseListener {
             UI.fillPreviewModel();
             UI.showPokemonScreen();
         }
-        if(e.getSource() == UI.addPokemonButton){
+        if(e.getSource() == UI.addPokemonButton && UI.pokemonJList.getSelectedIndex() != -1){
             UI.addPokemonToPreview();
         }
-        if(e.getSource() == UI.removePokemonButton){
+        if(e.getSource() == UI.removePokemonButton && UI.searchPreviewList.getSelectedIndex() != -1){
             UI.removePokemonFromPreview();
         }
-        if(e.getSource() == UI.editButton){
+        if(e.getSource() == UI.editButton && UI.searchStringList.getSelectedIndex() != -1){
             UI.editSearch();
         }
         if(e.getSource() == UI.deleteButton && UI.searchStringList.getSelectedIndex() != -1){
@@ -116,7 +116,9 @@ public class Button extends JButton implements MouseListener {
         if(e.getSource() == UI.pokemonButton){
             UI.showPokemonScreen();
         }
-
+        if(e.getSource() == UI.importPokemonButton){
+            UI.importPokemon();
+        }
         if(e.getSource() == UI.backButton){
             UI.fillPokemonModel();
             UI.continueButton.setVisible(false);

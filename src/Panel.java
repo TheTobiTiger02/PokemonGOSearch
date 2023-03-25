@@ -24,7 +24,6 @@ public class Panel extends JPanel{
         this.setLayout(layout);
         this.setVisible(visible);
 
-
     }
 
 
