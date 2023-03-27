@@ -21,7 +21,7 @@ public class UI implements Runnable{
     static Frame frame;
     static JLabel usernameLabel, passwordLabel, titleLabel, addattributeLabel, removeattributeLabel;
     static Panel loginPanel, searchListPanel, mainButtonPanel, pokemonPanel, addPokemonPanel, pokemonButtonPanel, titlePanel, searchPreviewPanel, addAttributePanel, removeAttributePanel;
-    static Button loginButton, registerButton, addButton, editButton, deleteButton, pokemonButton, importPokemonButton, addPokemonButton, removePokemonButton, backButton, continueButton, completeButton;
+    static Button loginButton, registerButton, addButton, editButton, deleteButton, pokemonButton, importPokemonButton, logoutButton, addPokemonButton, removePokemonButton, backButton, continueButton, completeButton;
     static DefaultListModel<String> searchModel, pokemonModel, searchPreviewModel;
     static JList<String> searchStringList, pokemonJList, searchPreviewList;
     static boolean queryAsNumber;
@@ -210,12 +210,14 @@ public class UI implements Runnable{
         deleteButton = new Button("Entfernen", new Color(0x767676), Color.WHITE, 0, 200, 200, 100);
         pokemonButton = new Button("Pokémon", new Color(0x767676), Color.WHITE, 0, 300, 200, 100);
         importPokemonButton = new Button("Pokémon hinzufügen", new Color(0x767676), Color.WHITE, 0, 400, 200, 100);
+        logoutButton = new Button("Abmelden", new Color(0x767676), Color.WHITE, mainButtonPanel.getWidth() - 215, 0, 200, 100);
         importPokemonButton.setVisible(false);
         mainButtonPanel.add(addButton);
         mainButtonPanel.add(editButton);
         mainButtonPanel.add(deleteButton);
         mainButtonPanel.add(pokemonButton);
         mainButtonPanel.add(importPokemonButton);
+        mainButtonPanel.add(logoutButton);
 
 
 
@@ -512,6 +514,9 @@ public class UI implements Runnable{
 
     static void showLoginScreen() {
         loginPanel.setVisible(true);
+        searchListPanel.setVisible(false);
+        mainButtonPanel.setVisible(false);
+        titleLabel.setText("Login");
         usernameTextField.setText("");
         passwordTextField.setText("");
     }

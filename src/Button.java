@@ -119,6 +119,9 @@ public class Button extends JButton implements MouseListener {
         if(e.getSource() == UI.importPokemonButton){
             UI.importPokemon();
         }
+        if(e.getSource() == UI.logoutButton){
+            UI.showLoginScreen();
+        }
         if(e.getSource() == UI.backButton){
             UI.fillPokemonModel();
             UI.continueButton.setVisible(false);
