@@ -394,36 +394,11 @@ public class UI implements Runnable{
                 if(search.equals("")){
                     previewFilter = "";
                 }
-                else{
+                else {
                     previewFilter = String.format(" (numberChar like '%s' or name like '%s')", search + "%", search + "%");
-
-                        /*if(searchQuery.equals("select * from pokemon")){
-                            statement = connection.prepareStatement(searchQuery + " where numberChar like ? or name like ?");
-                            statement.setString(1, search + "%");
-                            statement.setString(2, search + "%");
-                        }
-                        else{
-                            statement = connection.prepareStatement(searchQuery + " and (numberChar like ? or name like ?)");
-                            statement.setString(1, search + "%");
-                            statement.setString(2, search + "%");
-                        }
-
-                         */
-                    }
-                    /*searchPreviewModel.clear();
-
-                    resultSet = statement.executeQuery();
-
-                    while(resultSet.next()){
-                        searchPreviewModel.addElement(resultSet.getString("name") + " (#" + resultSet.getString("number") + ")");
-                    }
-
-                     */
+                }
 
                 fillPreviewModel();
-
-
-
 
             }
         });
@@ -570,9 +545,10 @@ public class UI implements Runnable{
 
     static void registerUser() {
         try {
-            statement = connection.prepareStatement("insert into user(username,password)values(?,?)");
+            statement = connection.prepareStatement("insert into user(username,password, status)values(?,?,?)");
             statement.setString(1, usernameTextField.getText());
             statement.setString(2, passwordTextField.getText());
+            statement.setString(3, "user");
             statement.executeUpdate();
         }
         catch(SQLIntegrityConstraintViolationException e){
@@ -582,9 +558,6 @@ public class UI implements Runnable{
         catch (SQLException e) {
             throw new RuntimeException(e);
         }
-
-
-
         setActiveUser();
         loginPanel.setVisible(false);
         showMainScreen();
@@ -839,6 +812,7 @@ public class UI implements Runnable{
                 }
 
             }
+            System.out.println(statement);
 
             resultSet = statement.executeQuery();
 
