@@ -141,6 +141,18 @@ public class Button extends JButton implements MouseListener {
         if(e.getSource() == UI.completeButton){
             UI.addSearch();
         }
+        for(int i = 0; i < UI.checkListButtons.size(); i++){
+            if(e.getSource() == UI.checkListButtons.get(i)){
+                Color newColor;
+                if(UI.checkListButtons.get(i).getBackground() == Color.RED){
+                    newColor = Color.GREEN;
+                }
+                else{
+                    newColor = Color.RED;
+                }
+                UI.checkListButtons.get(i).setBackground(newColor);
+            }
+        }
     }
 
     @Override

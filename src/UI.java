@@ -12,7 +12,6 @@ import java.awt.event.MouseListener;
 import java.io.File;
 import java.sql.*;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Scanner;
 
 public class UI implements Runnable{
@@ -20,7 +19,7 @@ public class UI implements Runnable{
 
     static Frame frame;
     static JLabel usernameLabel, passwordLabel, titleLabel, addattributeLabel, removeattributeLabel;
-    static Panel loginPanel, searchListPanel, mainButtonPanel, pokemonPanel, addPokemonPanel, pokemonButtonPanel, titlePanel, searchPreviewPanel, addAttributePanel, removeAttributePanel;
+    static Panel loginPanel, searchListPanel, mainButtonPanel, pokemonPanel, addPokemonPanel, pokemonButtonPanel, titlePanel, searchPreviewPanel, addAttributePanel, removeAttributePanel, checkListPanel;
     static Button loginButton, registerButton, addButton, editButton, deleteButton, pokemonButton, importPokemonButton, logoutButton, addPokemonButton, removePokemonButton, backButton, continueButton, completeButton;
     static DefaultListModel<String> searchModel, pokemonModel, searchPreviewModel;
     static JList<String> searchStringList, pokemonJList, searchPreviewList;
@@ -28,14 +27,14 @@ public class UI implements Runnable{
     static String query;
     static JTextField usernameTextField, searchField, searchPreviewSearchField;
     static JPasswordField passwordTextField;
-    static JScrollPane pokemonScrollPane, searchListScrollPane, searchPreviewScrollPane;
+    static JScrollPane pokemonScrollPane, searchListScrollPane, searchPreviewScrollPane, checkListScrollPane;
 
 
     static ArrayList<String> pokemonList, attributes;
     static ArrayList<CheckBox> addAttributeCheckBoxes, removeAttributeCheckBoxes;
-
+    static ArrayList<Button> checkListButtons;
     static String pokemonQuery = "select * from pokemon";
-    static String searchQuery = "";
+    static String previewQuery = "";
     static String editingTitle;
     static String pokemonFilter = "";
     static String previewFilter = "";
@@ -69,16 +68,6 @@ public class UI implements Runnable{
             throw new RuntimeException(e);
         }
 
-        try {
-            statement = connection.prepareStatement("select * from attributes");
-            resultSet = statement.executeQuery();
-            while(resultSet.next()){
-                attributes.add(resultSet.getString("title"));
-            }
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
-
 
 
 
@@ -89,6 +78,21 @@ public class UI implements Runnable{
         titleLabel.setFont(new Font("Times New Roman", Font.BOLD, 20));
         titleLabel.setForeground(Color.BLACK);
         titlePanel.add(titleLabel);
+
+        checkListPanel = new Panel(new Color(50, 50, 50), Color.WHITE, 0, titlePanel.getHeight(), frame.getWidth(), frame.getHeight() - titlePanel.getHeight(), false, null);
+
+        checkListButtons = new ArrayList<>();
+        for(int i = 0; i < 100; i++){
+            checkListButtons.add(new Button("Button " + i, Color.GREEN, Color.WHITE, 0, 0, 200, 200));
+            checkListPanel.add(checkListButtons.get(i));
+        }
+        checkListPanel.setLayout(new GridLayout(checkListButtons.size() / 5, 5));
+        checkListScrollPane = new JScrollPane(checkListPanel);
+        checkListScrollPane.setVisible(false);
+        checkListScrollPane.setBounds(50, 50, 900, 700);
+
+        checkListScrollPane.getVerticalScrollBar().setUnitIncrement(16);
+
 
         loginPanel = new Panel(new Color(50, 50, 50), Color.WHITE, 0, titlePanel.getHeight(), frame.getWidth(), frame.getHeight() - titlePanel.getHeight(), true, null);
         loginButton = new Button("Anmelden", new Color(0x767676), Color.WHITE, 390, 400 , 100, 50);
@@ -480,6 +484,7 @@ public class UI implements Runnable{
         frame.getContentPane().add(addPokemonPanel);
         frame.getContentPane().add(addAttributePanel);
         frame.getContentPane().add(removeAttributePanel);
+        frame.getContentPane().add(checkListScrollPane);
 
         frame.revalidate();
         frame.repaint();
@@ -591,30 +596,48 @@ public class UI implements Runnable{
 
         if(pokemonModelSize - pokemonJList.getSelectedIndices().length == 0){
             pokemonQuery = "";
-            searchQuery = "select * from pokemon";
+            previewQuery = "select * from pokemon";
         }
         else{
-            pokemonQuery = "select * from pokemon where (numberChar != ";
-            searchQuery = "select * from pokemon where (numberChar = ";
+            if(previewQuery.equals("")){
+                previewQuery = "select * from pokemon where (numberChar = ";
+                pokemonQuery += " where (numberChar != ";
+            }
+            if(pokemonQuery.contains(")")){
+                pokemonQuery = pokemonQuery.replace(")", " and numberChar != ");
+            }
+            if(previewQuery.contains(")")){
+                previewQuery = previewQuery.replace(")", " or numberChar = ");
+            }
+            for(int i = 0; i < pokemonJList.getSelectedIndices().length; i++){
+                pokemonQuery += pokemonModel.getElementAt(pokemonJList.getSelectedIndices()[i]).split("#")[1].split("\\)")[0];
+                previewQuery += pokemonModel.getElementAt(pokemonJList.getSelectedIndices()[i]).split("#")[1].split("\\)")[0];
+                if(i + 1 < pokemonJList.getSelectedIndices().length){
+                    pokemonQuery += " and numberChar != ";
+                    previewQuery += " or numberChar = ";
+                }
+            }
+            /*pokemonQuery = "select * from pokemon where (numberChar != ";
+            previewQuery = "select * from pokemon where (numberChar = ";
             for(int i = 0; i < searchPreviewModel.getSize(); i++){
                 pokemonQuery += searchPreviewModel.getElementAt(i).split("#")[1].split("\\)")[0];
                 pokemonQuery += " and numberChar != ";
 
-                searchQuery += searchPreviewModel.getElementAt(i).split("#")[1].split("\\)")[0];
-                searchQuery += " or numberChar = ";
+                previewQuery += searchPreviewModel.getElementAt(i).split("#")[1].split("\\)")[0];
+                previewQuery += " or numberChar = ";
             }
             for(int i = 0; i < pokemonJList.getSelectedIndices().length; i++){
                 pokemonQuery += pokemonModel.getElementAt(pokemonJList.getSelectedIndices()[i]).split("#")[1].split("\\)")[0];
-                searchQuery += pokemonModel.getElementAt(pokemonJList.getSelectedIndices()[i]).split("#")[1].split("\\)")[0];
+                previewQuery += pokemonModel.getElementAt(pokemonJList.getSelectedIndices()[i]).split("#")[1].split("\\)")[0];
                 if(i + 1 < pokemonJList.getSelectedIndices().length){
                     pokemonQuery += " and numberChar != ";
-                    searchQuery += " or numberChar = ";
+                    previewQuery += " or numberChar = ";
                 }
             }
-            //pokemonQuery += pokemonModel.getElementAt(pokemonJList.getSelectedIndex()).split("#")[1].split("\\)")[0] + ")";
-            //searchQuery += pokemonModel.getElementAt(pokemonJList.getSelectedIndex()).split("#")[1].split("\\)")[0] + ")";
+
+             */
             pokemonQuery += ")";
-            searchQuery += ")";
+            previewQuery += ")";
         }
 
 
@@ -626,41 +649,91 @@ public class UI implements Runnable{
 
     static void removePokemonFromPreview(){
 
-        if(searchModelSize - searchPreviewList.getSelectedIndices().length == 0){
 
+
+        if(searchModelSize - searchPreviewList.getSelectedIndices().length == 0){
             pokemonQuery = "select * from pokemon";
-            searchQuery = "";
+            previewQuery = "";
         }
         else{
-            pokemonQuery = "select * from pokemon where (numberChar = ";
-            searchQuery = "select * from pokemon where (numberChar != ";
+            if(pokemonQuery.equals("")){
+                pokemonQuery = "select * from pokemon where (numberChar != ";
+                previewQuery += "where (numberChar = ";
+            }
+
+            pokemonQuery = pokemonQuery.replace(")", "");
+            previewQuery = previewQuery.replace(")", "");
 
 
-            for(int i = 0; i < pokemonModel.getSize(); i++){
+
+            for(int i = 0; i < searchPreviewList.getSelectedIndices().length; i++){
+                if(pokemonQuery.contains("and numberChar != " + searchPreviewModel.getElementAt(searchPreviewList.getSelectedIndices()[i]).split("#")[1].split("\\)")[0])){
+                    pokemonQuery = pokemonQuery.replace("and numberChar != " + searchPreviewModel.getElementAt(searchPreviewList.getSelectedIndices()[i]).split("#")[1].split("\\)")[0], "");
+                }
+                else{
+                    pokemonQuery = pokemonQuery.replace("numberChar != " + searchPreviewModel.getElementAt(searchPreviewList.getSelectedIndices()[i]).split("#")[1].split("\\)")[0], "");
+                    try{
+                        pokemonQuery = pokemonQuery.replaceFirst("and", "");
+                        pokemonQuery = pokemonQuery.replace("(  ", "(");
+                    }
+                    catch(Exception e){
+
+                    }
+                }
+                if(pokemonQuery.contains("  ")){
+                    pokemonQuery = pokemonQuery.replace("  ", " ");
+                }
+
+                if(previewQuery.contains("or numberChar = " + searchPreviewModel.getElementAt(searchPreviewList.getSelectedIndices()[i]).split("#")[1].split("\\)")[0])){
+                    previewQuery = previewQuery.replace("or numberChar = " + searchPreviewModel.getElementAt(searchPreviewList.getSelectedIndices()[i]).split("#")[1].split("\\)")[0], "");
+                }
+                else{
+                    previewQuery = previewQuery.replace("numberChar = " + searchPreviewModel.getElementAt(searchPreviewList.getSelectedIndices()[i]).split("#")[1].split("\\)")[0], "");
+                    try{
+                        previewQuery = previewQuery.replaceFirst("or", "");
+                        previewQuery = previewQuery.replace("(  ", "(");
+                    }
+                    catch(Exception e){
+
+                    }
+                }
+                if(previewQuery.contains("  ")){
+                    previewQuery = previewQuery.replace("  ", " ");
+                }
+
+            }
+
+            /*for(int i = 0; i < pokemonModel.getSize(); i++){
                 pokemonQuery += pokemonModel.getElementAt(i).split("#")[1].split("\\)")[0];
                 pokemonQuery += " or numberChar = ";
 
-                searchQuery += pokemonModel.getElementAt(i).split("#")[1].split("\\)")[0];
-                searchQuery += " and numberChar != ";
+                previewQuery += pokemonModel.getElementAt(i).split("#")[1].split("\\)")[0];
+                previewQuery += " and numberChar != ";
             }
             for(int i = 0; i < searchPreviewList.getSelectedIndices().length; i++){
                 pokemonQuery += searchPreviewModel.getElementAt(searchPreviewList.getSelectedIndices()[i]).split("#")[1].split("\\)")[0];
-                searchQuery += searchPreviewModel.getElementAt(searchPreviewList.getSelectedIndices()[i]).split("#")[1].split("\\)")[0];
+                previewQuery += searchPreviewModel.getElementAt(searchPreviewList.getSelectedIndices()[i]).split("#")[1].split("\\)")[0];
                 if(i + 1 < searchPreviewList.getSelectedIndices().length){
                     pokemonQuery += " or numberChar = ";
-                    searchQuery += " and numberChar != ";
+                    previewQuery += " and numberChar != ";
                 }
             }
+
+             */
             //pokemonQuery += searchPreviewModel.getElementAt(pokemonJList.getSelectedIndex()).split("#")[1].split("\\)")[0] + ")";
             //searchQuery += searchPreviewModel.getElementAt(pokemonJList.getSelectedIndex()).split("#")[1].split("\\)")[0] + ")";
             pokemonQuery += ")";
-            searchQuery += ")";
+            previewQuery += ")";
+
+
         }
+
 
         fillPokemonModel();
         fillPreviewModel();
         pokemonModelSize = pokemonModel.getSize();
         searchModelSize = searchPreviewModel.getSize();
+
     }
 
     static void editSearch() {
@@ -682,19 +755,29 @@ public class UI implements Runnable{
                 if(queryAsNumber){
                     pokemonQuery = "select * from pokemon where (numberChar != '" + search.replace(",", "' and numberChar != '");
                     pokemonQuery += "')";
-                    searchQuery = pokemonQuery.replace("and", "or");
-                    searchQuery = searchQuery.replace("!", "");
+                    previewQuery = pokemonQuery.replace("and", "or");
+                    previewQuery = previewQuery.replace("!", "");
                 }
                 else{
                     pokemonQuery = "select * from pokemon where (name != '" + search.replace(",", "' and name != '");
                     pokemonQuery += "')";
-                    searchQuery = pokemonQuery.replace("and", "or");
-                    searchQuery = searchQuery.replace("!", "");
+                    previewQuery = pokemonQuery.replace("and", "or");
+                    previewQuery = previewQuery.replace("!", "");
+                }
+                try{
+                    pokemonQuery = pokemonQuery.replaceAll("'", "");
+                    previewQuery = previewQuery.replaceAll("'", "");
+
+                }
+                catch(Exception e){
+
                 }
 
 
                 fillPokemonModel();
                 fillPreviewModel();
+                pokemonModelSize = pokemonModel.getSize();
+                searchModelSize = searchPreviewModel.getSize();
                 isEditing = true;
                 searchPreviewPanel.setVisible(true);
                 continueButton.setVisible(true);
@@ -737,7 +820,7 @@ public class UI implements Runnable{
         searchPreviewScrollPane.getVerticalScrollBar().setValue(0);
         searchListScrollPane.getVerticalScrollBar().setValue(0);
         pokemonQuery = "select * from pokemon";
-        searchQuery = "";
+        previewQuery = "";
     }
 
     static void showPokemonScreen() {
@@ -786,6 +869,7 @@ public class UI implements Runnable{
             }
             resultSet = statement.executeQuery();
 
+
             while(resultSet.next()){
                 pokemonModel.addElement(resultSet.getString("name") + " (#" + resultSet.getString("number") + ")");
             }
@@ -801,23 +885,22 @@ public class UI implements Runnable{
     static void fillPreviewModel(){
 
         searchPreviewModel.clear();
-        if(searchQuery.equals("")){
+        if(previewQuery.equals("")){
             return;
         }
         try {
             if(previewFilter.equals("")){
-                statement = connection.prepareStatement(searchQuery);
+                statement = connection.prepareStatement(previewQuery);
             }
             else{
-                if(searchQuery.contains("where")) {
-                    statement = connection.prepareStatement(searchQuery + " and" + previewFilter);
+                if(previewQuery.contains("where")) {
+                    statement = connection.prepareStatement(previewQuery + " and" + previewFilter);
                 }
                 else{
-                    statement = connection.prepareStatement(searchQuery + " where" +  previewFilter);
+                    statement = connection.prepareStatement(previewQuery + " where" +  previewFilter);
                 }
 
             }
-            System.out.println(statement);
 
             resultSet = statement.executeQuery();
 
@@ -899,7 +982,6 @@ public class UI implements Runnable{
                     JOptionPane.showMessageDialog(frame, "Du hast diesen Titel bereits verwendet");
 
                 } catch (SQLException e) {
-                    System.out.println("Test");
                     throw new RuntimeException(e);
                 }
             }
