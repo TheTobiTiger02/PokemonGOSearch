@@ -4,6 +4,8 @@ import java.awt.*;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.util.ArrayList;
+import java.util.Map;
+import java.util.Objects;
 
 
 public class Button extends JButton implements MouseListener {
@@ -20,10 +22,11 @@ public class Button extends JButton implements MouseListener {
         this.setBorder(border);
         this.setBounds(x, y, width, height);
         this.addMouseListener(this);
+        this.setFocusPainted(false);
+
     }
 
     public Button(String text, Color background, Color foreground, Font font, int x, int y, int width, int height){
-
         this.setText(text);
         this.setBackground(background);
         this.setForeground(foreground);
@@ -31,6 +34,8 @@ public class Button extends JButton implements MouseListener {
         this.setBorder(defaultBorder);
         this.setBounds(x, y, width, height);
         this.addMouseListener(this);
+        this.setFocusPainted(false);
+
     }
 
     public Button(String text, Color background, Color foreground, Border border, int x, int y, int width, int height){
@@ -42,6 +47,8 @@ public class Button extends JButton implements MouseListener {
         this.setBorder(border);
         this.setBounds(x, y, width, height);
         this.addMouseListener(this);
+        this.setFocusPainted(false);
+
     }
 
     public Button(String text, Color background, Color foreground, int x, int y, int width, int height){
@@ -53,6 +60,8 @@ public class Button extends JButton implements MouseListener {
         this.setBorder(defaultBorder);
         this.setBounds(x, y, width, height);
         this.addMouseListener(this);
+        this.setFocusPainted(false);
+
     }
 
 
@@ -141,18 +150,42 @@ public class Button extends JButton implements MouseListener {
         if(e.getSource() == UI.completeButton){
             UI.addSearch();
         }
-        for(int i = 0; i < UI.checkListButtons.size(); i++){
+
+
+        for(int i = 0; i < UI.checkListPanel.getComponentCount(); i++){
+            if(e.getSource() == UI.checkListPanel.getComponent(i)){
+                Color newColor;
+                if(UI.checkListPanel.getComponent(i).getBackground() == Color.GRAY){
+                    newColor = Color.GREEN;
+                }
+
+                else{
+                    newColor = Color.GRAY;
+                }
+                UI.checkListPanel.getComponent(i).setBackground(newColor);
+                for(Map.Entry<String, Button> entry : UI.test.entrySet()){
+                    if(Objects.equals(UI.checkListPanel.getComponent(i), entry.getValue())){
+                        UI.updateCheckList(entry.getKey());
+                    }
+                }
+
+
+            }
+        }
+        /*for(int i = 0; i < UI.checkListButtons.size(); i++){
             if(e.getSource() == UI.checkListButtons.get(i)){
                 Color newColor;
-                if(UI.checkListButtons.get(i).getBackground() == Color.RED){
+                if(UI.checkListButtons.get(i).getBackground() == Color.GRAY){
                     newColor = Color.GREEN;
                 }
                 else{
-                    newColor = Color.RED;
+                    newColor = Color.GRAY;
                 }
                 UI.checkListButtons.get(i).setBackground(newColor);
             }
         }
+
+         */
     }
 
     @Override

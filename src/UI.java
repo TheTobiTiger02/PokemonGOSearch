@@ -1,3 +1,4 @@
+import javax.imageio.ImageIO;
 import javax.swing.*;
 import javax.swing.border.Border;
 import javax.swing.event.DocumentEvent;
@@ -9,9 +10,12 @@ import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.StringSelection;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.awt.image.BufferedImage;
 import java.io.File;
+import java.io.IOException;
 import java.sql.*;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Scanner;
 
 public class UI implements Runnable{
@@ -48,6 +52,8 @@ public class UI implements Runnable{
     static PreparedStatement statement;
     static ResultSet resultSet;
 
+    static HashMap<String, Button> test;
+
     static User activeUser;
 
 
@@ -71,44 +77,98 @@ public class UI implements Runnable{
 
 
 
-        frame = new Frame("PokemonGoSearch", new Color(50, 50, 50), 1000, 800, true);
-        titlePanel = new Panel(Color.WHITE,Color.BLACK, 0, 0, 1000, 50, true, null);
-        titleLabel = new JLabel("Login", SwingConstants.CENTER);
-        titleLabel.setBounds(10, 0, 1000, 50);
+        frame = new Frame("PokemonGoSearch", new Color(50, 50, 50), 1800, 1000, true);
+        titlePanel = new Panel(Color.WHITE,Color.BLACK, 0, 0, frame.getWidth(), 50, true, null);
+        titleLabel = new JLabel("Login");
+        titleLabel.setBounds(frame.getWidth() / 2, 0, 1000, 50);
         titleLabel.setFont(new Font("Times New Roman", Font.BOLD, 20));
         titleLabel.setForeground(Color.BLACK);
-        titlePanel.add(titleLabel);
+        titlePanel.add(titleLabel, SwingConstants.CENTER);
 
-        checkListPanel = new Panel(new Color(50, 50, 50), Color.WHITE, 0, titlePanel.getHeight(), frame.getWidth(), frame.getHeight() - titlePanel.getHeight(), false, null);
+        checkListPanel = new Panel(new Color(50, 50, 50), Color.WHITE, 0, titlePanel.getHeight(), frame.getWidth() - 50, frame.getHeight() - 100, true, null);
 
         checkListButtons = new ArrayList<>();
-        for(int i = 0; i < 100; i++){
-            checkListButtons.add(new Button("Button " + i, Color.GREEN, Color.WHITE, 0, 0, 200, 200));
-            checkListPanel.add(checkListButtons.get(i));
+        try {
+            statement = connection.prepareStatement("select number, name from pokemon");
+            resultSet = statement.executeQuery();
+
+            int x = 0;
+            int y = 0;
+            test = new HashMap<>();
+            while(resultSet.next()){
+
+
+                File imgFile = new File("Addressable Assets\\pm" + resultSet.getString("number") + ".icon.png");
+                BufferedImage img = ImageIO.read(imgFile);
+                Image scaledImg = img.getScaledInstance(100, 100, Image.SCALE_SMOOTH);
+                Icon icon = new ImageIcon(scaledImg);
+                //Icon icon = new ImageIcon("Images\\pm" + resultSet.getString("number") + ".icon.png");
+
+                Button button = new Button(resultSet.getString("name"), Color.GRAY, Color.BLACK, x, y, 300, 200);
+                test.put(button.getText(), button);
+                button.setPreferredSize(new Dimension(100, 200));
+                button.setFont(new Font("Times New Roman", Font.BOLD, 16));
+                button.setVerticalAlignment(SwingConstants.BOTTOM);
+                button.setVerticalTextPosition(SwingConstants.CENTER);
+                button.setIcon(icon);
+                checkListButtons.add(button);
+                //checkListPanel.add(checkListButtons.get(i));
+                checkListPanel.add(test.get(button.getText()));
+
+            }
+
+
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        } catch (IOException e) {
+            System.out.println();
         }
-        checkListPanel.setLayout(new GridLayout(checkListButtons.size() / 5, 5));
+
+        try {
+            statement = connection.prepareStatement("select * from checklist where username = ?");
+            statement.setString(1, "TheTobiTiger");
+            System.out.println(statement);
+            resultSet = statement.executeQuery();
+
+            if(resultSet.next()){
+                System.out.println("Test");
+                String [] st = resultSet.getString("content").split(",");
+                for(String s : st){
+                    test.get(s).setBackground(Color.GREEN);
+                    System.out.println(test.get(s).getBackground());
+                }
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+
+        //System.out.println(checkListButtons.get(1).getIcon());
+        checkListPanel.setLayout(new GridLayout(0, 8));
         checkListScrollPane = new JScrollPane(checkListPanel);
         checkListScrollPane.setVisible(false);
-        checkListScrollPane.setBounds(50, 50, 900, 700);
 
-        checkListScrollPane.getVerticalScrollBar().setUnitIncrement(16);
+        checkListScrollPane.setBounds(0, titlePanel.getHeight(), frame.getWidth() , frame.getHeight() - 100);
+
+        checkListScrollPane.getVerticalScrollBar().setUnitIncrement(20);
+        checkListScrollPane.getViewport().setScrollMode(JViewport.BACKINGSTORE_SCROLL_MODE);
 
 
         loginPanel = new Panel(new Color(50, 50, 50), Color.WHITE, 0, titlePanel.getHeight(), frame.getWidth(), frame.getHeight() - titlePanel.getHeight(), true, null);
-        loginButton = new Button("Anmelden", new Color(0x767676), Color.WHITE, 390, 400 , 100, 50);
-        loginButton.setFont(new Font("Times New Roman", Font.BOLD, 18));
-        registerButton = new Button("Registrieren", new Color(0x767676), Color.WHITE, 490, 400, 100, 50);
-        registerButton.setFont(new Font("Times New Roman", Font.BOLD, 18));
+
         usernameTextField = new JTextField();
-        usernameTextField.setBounds(350, 300, 300, 25);
+        usernameTextField.setBounds((loginPanel.getWidth() / 2) - 300, 300, 300, 25);
         passwordTextField = new JPasswordField();
-        passwordTextField.setBounds(350, 350, 300, 25);
+        passwordTextField.setBounds((frame.getWidth() / 2) - 300, 350, 300, 25);
         usernameLabel = new JLabel("Benutzername");
         usernameLabel.setForeground(Color.WHITE);
-        usernameLabel.setBounds(250, 285, 100, 50);
+        usernameLabel.setBounds(usernameTextField.getX() - 100, 285, 100, 50);
         passwordLabel = new JLabel("Passwort");
-        passwordLabel.setBounds(250, 335, 100, 50);
+        passwordLabel.setBounds(passwordTextField.getX() - 100, 335, 100, 50);
         passwordLabel.setForeground(Color.WHITE);
+        loginButton = new Button("Anmelden", new Color(0x767676), Color.WHITE, usernameTextField.getX() + 50, 400 , 100, 50);
+        loginButton.setFont(new Font("Times New Roman", Font.BOLD, 18));
+        registerButton = new Button("Registrieren", new Color(0x767676), Color.WHITE, loginButton.getX() + loginButton.getWidth(), 400, 100, 50);
+        registerButton.setFont(new Font("Times New Roman", Font.BOLD, 18));
         loginPanel.add(loginButton);
         loginPanel.add(registerButton);
         loginPanel.add(usernameTextField);
@@ -1002,15 +1062,19 @@ public class UI implements Runnable{
 
     }
 
-    static void test() {
+    static void updateCheckList(String pokemon) {
         try {
-            statement = connection.prepareStatement("insert into pokemon(number,name)values(" +152 + ",?)");
-            statement.setString(1, "Chikorita");
+            statement = connection.prepareStatement("update checklist set content = CONCAT(content, ?) where username = ?");
+            statement.setString(1, pokemon + ",");
+            statement.setString(2, "TheTobiTiger");
+            System.out.println(statement);
             statement.executeUpdate();
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
     }
+
+
 
 
     @Override
