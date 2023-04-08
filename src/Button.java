@@ -77,119 +77,200 @@ public class Button extends JButton implements MouseListener {
     @Override
     public void mousePressed(MouseEvent e) {
 
+        switch(UI.currentState){
+            case "login":
+                if(e.getSource() == UI.loginButton){
+                    UI.loginuser();
+                    break;
+                }
+                if(e.getSource() == UI.registerButton){
+                    UI.registerUser();
+                    break;
+                }
+            case "mainMenu":
+                if(e.getSource() == UI.searchButton){
+                    UI.mainMenuPanel.setVisible(false);
+                    UI.showSearchMenu();
+                    break;
+                }
+                if(e.getSource() == UI.checkListButton){
+                    UI.mainMenuPanel.setVisible(false);
+                    UI.showChecklistMenu();
+                    break;
+                }
+                if(e.getSource() == UI.logoutButton){
+                    UI.showLoginScreen();
+                    break;
+                }
+            case "searchMenu":
+                if(e.getSource() == UI.addSearchButton){
 
-        if(e.getSource() == UI.loginButton){
-            UI.loginuser();
-        }
-        if(e.getSource() == UI.registerButton){
-            UI.registerUser();
-        }
-        if(e.getSource() == UI.searchButton){
-            UI.mainMenuPanel.setVisible(false);
-            UI.showSearchMenu();
-        }
-        if(e.getSource() == UI.checkListButton){
-            UI.mainMenuPanel.setVisible(false);
-            UI.showChecklistMenu();
-        }
-        if(e.getSource() == UI.addSearchButton){
+                    Object[] options = {"Mit Nummer", "Mit Name"};
+                    int selectedOption = JOptionPane.showOptionDialog(null, "Wie soll die Suche generiert werden?", "Optionen", JOptionPane.DEFAULT_OPTION, JOptionPane.QUESTION_MESSAGE, null, options, options[0]);
+                    if (selectedOption == 0) {
+                        UI.queryAsNumber = true;
+                    }
+                    else if (selectedOption == 1) {
+                        UI.queryAsNumber = false;
+                    }
+                    else{
+                        return;
+                    }
+                    UI.query = "";
+                    UI.isAdding = true;
+                    UI.isEditing = false;
+                    UI.searchPreviewPanel.setVisible(true);
+                    UI.searchContinueButton.setVisible(true);
+                    UI.searchCompleteButton.setVisible(true);
+                    UI.addPokemonPanel.setVisible(true);
+                    UI.searchPreviewModel.clear();
+                    UI.titleLabel.setText("Wähle alle Pokemon aus, die zur Suche hinzugefügt werden sollen");
+                    UI.fillPreviewModel();
+                    UI.showPokemonScreen();
+                    break;
+                }
+                if(e.getSource() == UI.editSearchButton && UI.searchStringList.getSelectedIndex() != -1){
+                    UI.editSearch();
+                    break;
+                }
+                if(e.getSource() == UI.deleteSearchButton && UI.searchStringList.getSelectedIndex() != -1){
+                    UI.deleteSearch();
+                    break;
+                }
 
-            Object[] options = {"Mit Nummer", "Mit Name"};
-            int selectedOption = JOptionPane.showOptionDialog(null, "Wie soll die Suche generiert werden?", "Optionen", JOptionPane.DEFAULT_OPTION, JOptionPane.QUESTION_MESSAGE, null, options, options[0]);
-            if (selectedOption == 0) {
-                UI.queryAsNumber = true;
-            }
-            else if (selectedOption == 1) {
-                UI.queryAsNumber = false;
-            }
-            else{
-                return;
-            }
-            UI.query = "";
-            UI.isAdding = true;
-            UI.isEditing = false;
-            UI.searchPreviewPanel.setVisible(true);
-            UI.searchContinueButton.setVisible(true);
-            UI.searchCompleteButton.setVisible(true);
-            UI.addPokemonPanel.setVisible(true);
-            UI.searchPreviewModel.clear();
-            UI.titleLabel.setText("Wähle alle Pokemon aus, die zur Suche hinzugefügt werden sollen");
-            UI.fillPreviewModel();
-            UI.showPokemonScreen();
-        }
-        if(e.getSource() == UI.addPokemonButton && UI.pokemonJList.getSelectedIndex() != -1){
-            UI.addPokemonToPreview();
-        }
-        if(e.getSource() == UI.removePokemonButton && UI.searchPreviewList.getSelectedIndex() != -1){
-            UI.removePokemonFromPreview();
-        }
-        if(e.getSource() == UI.editSearchButton && UI.searchStringList.getSelectedIndex() != -1){
-            UI.editSearch();
-        }
-        if(e.getSource() == UI.deleteSearchButton && UI.searchStringList.getSelectedIndex() != -1){
-            UI.deleteSearch();
-        }
-        if(e.getSource() == UI.pokemonButton){
-            UI.showPokemonScreen();
-        }
-        if(e.getSource() == UI.importPokemonButton){
-            UI.importPokemon();
-        }
-        if(e.getSource() == UI.logoutButton){
-            UI.showLoginScreen();
-        }
-        if(e.getSource() == UI.searchBackButton){
-            UI.fillPokemonModel();
-            UI.searchContinueButton.setVisible(false);
-            UI.searchCompleteButton.setVisible(false);
-            UI.isAdding = false;
-            UI.showSearchMenu();
-        }
-        if(e.getSource() == UI.searchMenuBackButton) {
-            UI.searchMenuPanel.setVisible(false);
-            UI.searchListPanel.setVisible(false);
-            UI.showMainScreen();
-        }
-        if(e.getSource() == UI.searchContinueButton){
-            /*UI.searchButtonPanel.setVisible(false);
-            UI.pokemonPanel.setVisible(false);
-            UI.searchPreviewPanel.setVisible(false);
-            UI.addAttributePanel.setVisible(true);
-            UI.removeAttributePanel.setVisible(true);
-            UI.addPokemonPanel.setVisible(false);
-             */
+                if(e.getSource() == UI.importPokemonButton){
+                    UI.importPokemon();
+                    break;
+                }
+                if(e.getSource() == UI.searchMenuBackButton) {
+                    UI.searchMenuPanel.setVisible(false);
+                    UI.searchListPanel.setVisible(false);
+                    UI.showMainScreen();
+                    break;
+                }
+            case "search":
+                if(e.getSource() == UI.addPokemonButton && UI.pokemonJList.getSelectedIndex() != -1){
+                    UI.addPokemonToPreview();
+                    break;
+                }
+                if(e.getSource() == UI.removePokemonButton && UI.searchPreviewList.getSelectedIndex() != -1){
+                    UI.removePokemonFromPreview();
+                    break;
+                }
+                if(e.getSource() == UI.searchBackButton){
+                    UI.fillPokemonModel();
+                    UI.searchContinueButton.setVisible(false);
+                    UI.searchCompleteButton.setVisible(false);
+                    UI.isAdding = false;
+                    UI.showSearchMenu();
+                    break;
+                }
+                if(e.getSource() == UI.searchContinueButton){
+                    /*UI.searchButtonPanel.setVisible(false);
+                    UI.pokemonPanel.setVisible(false);
+                    UI.searchPreviewPanel.setVisible(false);
+                    UI.addAttributePanel.setVisible(true);
+                    UI.removeAttributePanel.setVisible(true);
+                    UI.addPokemonPanel.setVisible(false);
+                    break;
+                     */
 
+                }
+                if(e.getSource() == UI.searchCompleteButton){
+                    UI.addSearch();
+                    break;
+                }
+            case "checklistMenu":
+                if(e.getSource() == UI.addChecklistButton){
+                    break;
+                }
+                if(e.getSource() == UI.editChecklistButton){
+                    break;
+                }
+                if(e.getSource() == UI.removeChecklistButton){
+                    UI.deleteChecklist();
+                    break; 
+                }
+                if(e.getSource() == UI.checklistMenuBackButton){
+                    UI.checklistMenuPanel.setVisible(false);
+                    UI.checklistListPanel.setVisible(false);
+                    UI.showMainScreen();
+                    break;
+                }
+            case "nationalChecklist":
+                for(int i = 0; i < UI.nationalChecklistButtons.size(); i++){
+                    if(e.getSource() == UI.nationalChecklistButtons.get(i)){
+                        Color newColor;
+                        if(UI.nationalChecklistButtons.get(i).getBackground() == Color.GRAY){
+                            newColor = Color.GREEN;
+                        }
+                        else{
+                            newColor = Color.GRAY;
+                        }
+                        UI.nationalChecklistButtons.get(i).setBackground(newColor);
+                        break;
+                    }
+                }
+            case "shinyChecklist":
+                for(int i = 0; i < UI.shinyChecklistButtons.size(); i++){
+                    if(e.getSource() == UI.shinyChecklistButtons.get(i)){
+                        Color newColor;
+                        if(UI.shinyChecklistButtons.get(i).getBackground() == Color.GRAY){
+                            newColor = Color.GREEN;
+                        }
+                        else{
+                            newColor = Color.GRAY;
+                        }
+                        UI.shinyChecklistButtons.get(i).setBackground(newColor);
+                        break;
+                    }
+                }
+            case "luckyChecklist":
+                for(int i = 0; i < UI.luckyChecklistButtons.size(); i++){
+                    if(e.getSource() == UI.luckyChecklistButtons.get(i)){
+                        Color newColor;
+                        if(UI.luckyChecklistButtons.get(i).getBackground() == Color.GRAY){
+                            newColor = Color.GREEN;
+                        }
+                        else{
+                            newColor = Color.GRAY;
+                        }
+                        UI.luckyChecklistButtons.get(i).setBackground(newColor);
+                        break;
+                    }
+                }
+            case "shadowChecklist":
+                for(int i = 0; i < UI.shadowChecklistButtons.size(); i++){
+                    if(e.getSource() == UI.shadowChecklistButtons.get(i)){
+                        Color newColor;
+                        if(UI.shadowChecklistButtons.get(i).getBackground() == Color.GRAY){
+                            newColor = Color.GREEN;
+                        }
+                        else{
+                            newColor = Color.GRAY;
+                        }
+                        UI.shadowChecklistButtons.get(i).setBackground(newColor);
+                        break;
+                    }
+                }
         }
-        if(e.getSource() == UI.searchCompleteButton){
-            UI.addSearch();
-        }
-        if(e.getSource() == UI.addChecklistButton){
+        
+        
+        
 
-        }
-        if(e.getSource() == UI.editChecklistButton){
-
-        }
-        if(e.getSource() == UI.removeChecklistButton){
-
-        }
-        if(e.getSource() == UI.checklistMenuBackButton){
-            UI.checklistMenuPanel.setVisible(false);
-            UI.checklistListPanel.setVisible(false);
-            UI.showMainScreen();
-        }
-        for(int i = 0; i < UI.checkListPanel.getComponentCount(); i++){
-            if(e.getSource() == UI.checkListPanel.getComponent(i)){
+        /*for(int i = 0; i < UI.nationalChecklistPanel.getComponentCount(); i++){
+            if(e.getSource() == UI.nationalChecklistPanel.getComponent(i)){
                 Color newColor;
-                if(UI.checkListPanel.getComponent(i).getBackground() == Color.GRAY){
+                if(UI.nationalChecklistPanel.getComponent(i).getBackground() == Color.GRAY){
                     newColor = Color.GREEN;
                 }
 
                 else{
                     newColor = Color.GRAY;
                 }
-                UI.checkListPanel.getComponent(i).setBackground(newColor);
-                for(Map.Entry<String, Button> entry : UI.test.entrySet()){
-                    if(Objects.equals(UI.checkListPanel.getComponent(i), entry.getValue())){
+                UI.nationalChecklistPanel.getComponent(i).setBackground(newColor);
+                for(Map.Entry<String, Button> entry : UI.nationalChecklistButtons.entrySet()){
+                    if(Objects.equals(UI.nationalChecklistPanel.getComponent(i), entry.getValue())){
                         UI.updateCheckList(entry.getKey());
                     }
                 }
@@ -197,20 +278,10 @@ public class Button extends JButton implements MouseListener {
 
             }
         }
-        /*for(int i = 0; i < UI.checkListButtons.size(); i++){
-            if(e.getSource() == UI.checkListButtons.get(i)){
-                Color newColor;
-                if(UI.checkListButtons.get(i).getBackground() == Color.GRAY){
-                    newColor = Color.GREEN;
-                }
-                else{
-                    newColor = Color.GRAY;
-                }
-                UI.checkListButtons.get(i).setBackground(newColor);
-            }
-        }
-
          */
+        
+
+         
     }
 
     @Override
