@@ -8,8 +8,11 @@ import java.awt.FlowLayout;
 public class Test  {
 
     public static void main(String[] args) {
-        JFrame frame = new JFrame("Test");
-        frame.setVisible(true);
+        String s = "select * from pokemon where (name = 'Butterfree')";
+        if(s.contains("name = 'Butterfree'")){
+            System.out.println("Test");
+        }
+        System.out.println(s.replace("name = 'Butterfree'", ""));
     }
 
 }

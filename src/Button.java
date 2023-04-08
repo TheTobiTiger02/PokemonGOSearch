@@ -3,7 +3,6 @@ import javax.swing.border.Border;
 import java.awt.*;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
-import java.util.ArrayList;
 import java.util.Map;
 import java.util.Objects;
 
@@ -85,7 +84,15 @@ public class Button extends JButton implements MouseListener {
         if(e.getSource() == UI.registerButton){
             UI.registerUser();
         }
-        if(e.getSource() == UI.addButton){
+        if(e.getSource() == UI.searchButton){
+            UI.mainMenuPanel.setVisible(false);
+            UI.showSearchMenu();
+        }
+        if(e.getSource() == UI.checkListButton){
+            UI.mainMenuPanel.setVisible(false);
+            UI.showChecklistMenu();
+        }
+        if(e.getSource() == UI.addSearchButton){
 
             Object[] options = {"Mit Nummer", "Mit Name"};
             int selectedOption = JOptionPane.showOptionDialog(null, "Wie soll die Suche generiert werden?", "Optionen", JOptionPane.DEFAULT_OPTION, JOptionPane.QUESTION_MESSAGE, null, options, options[0]);
@@ -102,8 +109,8 @@ public class Button extends JButton implements MouseListener {
             UI.isAdding = true;
             UI.isEditing = false;
             UI.searchPreviewPanel.setVisible(true);
-            UI.continueButton.setVisible(true);
-            UI.completeButton.setVisible(true);
+            UI.searchContinueButton.setVisible(true);
+            UI.searchCompleteButton.setVisible(true);
             UI.addPokemonPanel.setVisible(true);
             UI.searchPreviewModel.clear();
             UI.titleLabel.setText("Wähle alle Pokemon aus, die zur Suche hinzugefügt werden sollen");
@@ -116,10 +123,10 @@ public class Button extends JButton implements MouseListener {
         if(e.getSource() == UI.removePokemonButton && UI.searchPreviewList.getSelectedIndex() != -1){
             UI.removePokemonFromPreview();
         }
-        if(e.getSource() == UI.editButton && UI.searchStringList.getSelectedIndex() != -1){
+        if(e.getSource() == UI.editSearchButton && UI.searchStringList.getSelectedIndex() != -1){
             UI.editSearch();
         }
-        if(e.getSource() == UI.deleteButton && UI.searchStringList.getSelectedIndex() != -1){
+        if(e.getSource() == UI.deleteSearchButton && UI.searchStringList.getSelectedIndex() != -1){
             UI.deleteSearch();
         }
         if(e.getSource() == UI.pokemonButton){
@@ -131,27 +138,45 @@ public class Button extends JButton implements MouseListener {
         if(e.getSource() == UI.logoutButton){
             UI.showLoginScreen();
         }
-        if(e.getSource() == UI.backButton){
+        if(e.getSource() == UI.searchBackButton){
             UI.fillPokemonModel();
-            UI.continueButton.setVisible(false);
-            UI.completeButton.setVisible(false);
+            UI.searchContinueButton.setVisible(false);
+            UI.searchCompleteButton.setVisible(false);
             UI.isAdding = false;
-            UI.showMainScreen();
-
+            UI.showSearchMenu();
         }
-        if(e.getSource() == UI.continueButton){
-            /*UI.pokemonButtonPanel.setVisible(false);
+        if(e.getSource() == UI.searchMenuBackButton) {
+            UI.searchMenuPanel.setVisible(false);
+            UI.searchListPanel.setVisible(false);
+            UI.showMainScreen();
+        }
+        if(e.getSource() == UI.searchContinueButton){
+            /*UI.searchButtonPanel.setVisible(false);
             UI.pokemonPanel.setVisible(false);
             UI.searchPreviewPanel.setVisible(false);
             UI.addAttributePanel.setVisible(true);
             UI.removeAttributePanel.setVisible(true);
+            UI.addPokemonPanel.setVisible(false);
              */
+
         }
-        if(e.getSource() == UI.completeButton){
+        if(e.getSource() == UI.searchCompleteButton){
             UI.addSearch();
         }
+        if(e.getSource() == UI.addChecklistButton){
 
+        }
+        if(e.getSource() == UI.editChecklistButton){
 
+        }
+        if(e.getSource() == UI.removeChecklistButton){
+
+        }
+        if(e.getSource() == UI.checklistMenuBackButton){
+            UI.checklistMenuPanel.setVisible(false);
+            UI.checklistListPanel.setVisible(false);
+            UI.showMainScreen();
+        }
         for(int i = 0; i < UI.checkListPanel.getComponentCount(); i++){
             if(e.getSource() == UI.checkListPanel.getComponent(i)){
                 Color newColor;

@@ -23,15 +23,15 @@ public class UI implements Runnable{
 
     static Frame frame;
     static JLabel usernameLabel, passwordLabel, titleLabel, addattributeLabel, removeattributeLabel;
-    static Panel loginPanel, searchListPanel, mainButtonPanel, pokemonPanel, addPokemonPanel, pokemonButtonPanel, titlePanel, searchPreviewPanel, addAttributePanel, removeAttributePanel, checkListPanel;
-    static Button loginButton, registerButton, addButton, editButton, deleteButton, pokemonButton, importPokemonButton, logoutButton, addPokemonButton, removePokemonButton, backButton, continueButton, completeButton;
-    static DefaultListModel<String> searchModel, pokemonModel, searchPreviewModel;
-    static JList<String> searchStringList, pokemonJList, searchPreviewList;
+    static Panel loginPanel, searchListPanel, mainMenuPanel, searchMenuPanel, checklistMenuPanel, checklistListPanel, pokemonPanel, addPokemonPanel, searchButtonPanel, titlePanel, searchPreviewPanel, addAttributePanel, removeAttributePanel, checkListPanel;
+    static Button loginButton, registerButton, searchButton, checkListButton, addSearchButton, editSearchButton, deleteSearchButton, pokemonButton, searchMenuBackButton, importPokemonButton, logoutButton, checklistMenuBackButton, addChecklistButton, editChecklistButton, removeChecklistButton, addPokemonButton, removePokemonButton, searchBackButton, searchContinueButton, searchCompleteButton;
+    static DefaultListModel<String> searchModel, checklistModel, pokemonModel, searchPreviewModel;
+    static JList<String> searchStringList, checklistList, pokemonJList, searchPreviewList;
     static boolean queryAsNumber;
     static String query;
     static JTextField usernameTextField, searchField, searchPreviewSearchField;
     static JPasswordField passwordTextField;
-    static JScrollPane pokemonScrollPane, searchListScrollPane, searchPreviewScrollPane, checkListScrollPane;
+    static JScrollPane pokemonScrollPane, searchListScrollPane, checklistListScrollPane, searchPreviewScrollPane, checkListScrollPane;
 
 
     static ArrayList<String> pokemonList, attributes;
@@ -47,6 +47,8 @@ public class UI implements Runnable{
     static int searchModelSize = 0;
 
     static boolean isAdding, isEditing;
+
+    static Thread testThread;
 
     static Connection connection;
     static PreparedStatement statement;
@@ -65,8 +67,6 @@ public class UI implements Runnable{
 
         attributes = new ArrayList<>();
 
-
-
         try {
             connection = DriverManager.getConnection("jdbc:mysql://sql7.freesqldatabase.com/sql7606827", "sql7606827", "uAPhstaBJb");
 
@@ -79,72 +79,83 @@ public class UI implements Runnable{
 
         frame = new Frame("PokemonGoSearch", new Color(50, 50, 50), 1800, 1000, true);
         titlePanel = new Panel(Color.WHITE,Color.BLACK, 0, 0, frame.getWidth(), 50, true, null);
+        titlePanel.setName("TitlePanel");
         titleLabel = new JLabel("Login");
         titleLabel.setBounds(frame.getWidth() / 2, 0, 1000, 50);
         titleLabel.setFont(new Font("Times New Roman", Font.BOLD, 20));
         titleLabel.setForeground(Color.BLACK);
         titlePanel.add(titleLabel, SwingConstants.CENTER);
 
-        checkListPanel = new Panel(new Color(50, 50, 50), Color.WHITE, 0, titlePanel.getHeight(), frame.getWidth() - 50, frame.getHeight() - 100, true, null);
+        checkListPanel = new Panel(new Color(50, 50, 50), Color.WHITE, 0, titlePanel.getHeight(), frame.getWidth() - 50, frame.getHeight() - 100, false, null);
 
         checkListButtons = new ArrayList<>();
-        try {
-            statement = connection.prepareStatement("select number, name from pokemon");
-            resultSet = statement.executeQuery();
+        test = new HashMap<>();
 
-            int x = 0;
-            int y = 0;
-            test = new HashMap<>();
-            while(resultSet.next()){
+        testThread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    PreparedStatement s = connection.prepareStatement("select number, name from pokemon");
+                    ResultSet r = s.executeQuery();
 
+                    int x = 0;
+                    int y = 0;
+                    while(r.next()){
 
-                File imgFile = new File("Addressable Assets\\pm" + resultSet.getString("number") + ".icon.png");
-                BufferedImage img = ImageIO.read(imgFile);
-                Image scaledImg = img.getScaledInstance(100, 100, Image.SCALE_SMOOTH);
-                Icon icon = new ImageIcon(scaledImg);
-                //Icon icon = new ImageIcon("Images\\pm" + resultSet.getString("number") + ".icon.png");
+                        System.out.println(r.getString("name"));
+                        File imgFile = new File("Addressable Assets\\pm" + r.getString("number") + ".icon.png");
+                        BufferedImage img = ImageIO.read(imgFile);
+                        Image scaledImg = img.getScaledInstance(100, 100, Image.SCALE_SMOOTH);
+                        Icon icon = new ImageIcon(scaledImg);
+                        //Icon icon = new ImageIcon("Images\\pm" + resultSet.getString("number") + ".icon.png");
 
-                Button button = new Button(resultSet.getString("name"), Color.GRAY, Color.BLACK, x, y, 300, 200);
-                test.put(button.getText(), button);
-                button.setPreferredSize(new Dimension(100, 200));
-                button.setFont(new Font("Times New Roman", Font.BOLD, 16));
-                button.setVerticalAlignment(SwingConstants.BOTTOM);
-                button.setVerticalTextPosition(SwingConstants.CENTER);
-                button.setIcon(icon);
-                checkListButtons.add(button);
-                //checkListPanel.add(checkListButtons.get(i));
-                checkListPanel.add(test.get(button.getText()));
+                        Button button = new Button(r.getString("name"), Color.GRAY, Color.BLACK, x, y, 300, 200);
+                        test.put(button.getText(), button);
+                        button.setPreferredSize(new Dimension(100, 200));
+                        button.setFont(new Font("Times New Roman", Font.BOLD, 16));
+                        button.setVerticalAlignment(SwingConstants.BOTTOM);
+                        button.setVerticalTextPosition(SwingConstants.CENTER);
+                        button.setIcon(icon);
+                        checkListButtons.add(button);
+                        //checkListPanel.add(checkListButtons.get(i));
+                        checkListPanel.add(test.get(button.getText()));
 
-            }
+                    }
 
-
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        } catch (IOException e) {
-            System.out.println();
-        }
-
-        try {
-            statement = connection.prepareStatement("select * from checklist where username = ?");
-            statement.setString(1, "TheTobiTiger");
-            System.out.println(statement);
-            resultSet = statement.executeQuery();
-
-            if(resultSet.next()){
-                System.out.println("Test");
-                String [] st = resultSet.getString("content").split(",");
-                for(String s : st){
-                    test.get(s).setBackground(Color.GREEN);
-                    System.out.println(test.get(s).getBackground());
                 }
+                catch (SQLException e) {
+                }
+                catch (IOException e) {
+                }
+
+
+                try {
+                    PreparedStatement s = connection.prepareStatement("select * from checklist where username = ?");
+                    s.setString(1, activeUser.getUsername());
+                    ResultSet r = s.executeQuery();
+
+                    if(r.next()){
+                        String [] content = r.getString("content").split(",");
+                        for(String c : content){
+                            test.get(c).setBackground(Color.GREEN);
+                        }
+                    }
+                } catch (SQLException e) {
+
+                }
+
+
             }
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
+        });
+
+
+
 
         //System.out.println(checkListButtons.get(1).getIcon());
         checkListPanel.setLayout(new GridLayout(0, 8));
+        checkListPanel.setName("checkListPanel");
         checkListScrollPane = new JScrollPane(checkListPanel);
+        checkListScrollPane.setName("checkListScrollPane");
         checkListScrollPane.setVisible(false);
 
         checkListScrollPane.setBounds(0, titlePanel.getHeight(), frame.getWidth() , frame.getHeight() - 100);
@@ -154,11 +165,12 @@ public class UI implements Runnable{
 
 
         loginPanel = new Panel(new Color(50, 50, 50), Color.WHITE, 0, titlePanel.getHeight(), frame.getWidth(), frame.getHeight() - titlePanel.getHeight(), true, null);
+        loginPanel.setName("loginPanel");
 
         usernameTextField = new JTextField();
-        usernameTextField.setBounds((loginPanel.getWidth() / 2) - 300, 300, 300, 25);
+        usernameTextField.setBounds((loginPanel.getWidth() / 2) - 200, 300, 300, 25);
         passwordTextField = new JPasswordField();
-        passwordTextField.setBounds((frame.getWidth() / 2) - 300, 350, 300, 25);
+        passwordTextField.setBounds((usernameTextField.getX()), usernameTextField.getY() + 50, usernameTextField.getWidth(), usernameTextField.getHeight());
         usernameLabel = new JLabel("Benutzername");
         usernameLabel.setForeground(Color.WHITE);
         usernameLabel.setBounds(usernameTextField.getX() - 100, 285, 100, 50);
@@ -176,8 +188,20 @@ public class UI implements Runnable{
         loginPanel.add(usernameLabel);
         loginPanel.add(passwordLabel);
 
+        mainMenuPanel = new Panel(new Color(50, 50, 50), Color.WHITE, 0, titlePanel.getHeight(), frame.getWidth(), frame.getHeight() - titlePanel.getHeight(), false, null);
+        mainMenuPanel.setName("MainMenuPanel");
+        searchButton = new Button("Suche", new Color(0x767676), Color.WHITE, (mainMenuPanel.getWidth() / 2) - 200, (mainMenuPanel.getHeight() / 2) - 200 , 200, 100);
+        checkListButton = new Button("Checkliste", new Color(0x767676), Color.WHITE, searchButton.getX() + searchButton.getWidth(), searchButton.getY() , searchButton.getWidth(), searchButton.getHeight());
+        logoutButton = new Button("Abmelden", new Color(0x767676), Color.WHITE, mainMenuPanel.getWidth() - 215, 0, 200, 100);
+
+        mainMenuPanel.add(searchButton);
+        mainMenuPanel.add(checkListButton);
+        mainMenuPanel.add(logoutButton);
+
+
 
         searchListPanel = new Panel(new Color(50, 50, 50),Color.BLACK, 0, titlePanel.getHeight(), 400, frame.getHeight() - titlePanel.getHeight(), false, null);
+        searchListPanel.setName("searchListPanel");
 
         //mainListPanel.add(addButton);
 
@@ -186,38 +210,6 @@ public class UI implements Runnable{
 
 
         searchStringList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        searchStringList.addListSelectionListener(new ListSelectionListener() {
-            @Override
-            public void valueChanged(ListSelectionEvent e) {
-
-            }
-        });
-        searchStringList.addMouseListener(new MouseListener() {
-            @Override
-            public void mouseClicked(MouseEvent e) {
-
-            }
-
-            @Override
-            public void mousePressed(MouseEvent e) {
-
-            }
-
-            @Override
-            public void mouseReleased(MouseEvent e) {
-
-            }
-
-            @Override
-            public void mouseEntered(MouseEvent e) {
-
-            }
-
-            @Override
-            public void mouseExited(MouseEvent e) {
-
-            }
-        });
 
         //searchStringList.setBounds(0, 0, 200, 1000);
         searchStringList.setBackground(new Color(50, 50, 50));
@@ -262,31 +254,34 @@ public class UI implements Runnable{
 
 
         searchListScrollPane = new JScrollPane(searchStringList);
-        searchListScrollPane.setBounds(0, 0, 400, 713);
+        //searchListScrollPane.setBounds(0, 0, 400, 713);
+        searchListScrollPane.setBounds(0, 0, searchListPanel.getWidth(), searchListPanel.getHeight() - 40);
         //mainPanel.add(searchStringList);
         searchListPanel.add(searchListScrollPane);
         //mainListPanel.setBackground(new Color(50, 50, 50));
 
 
-        mainButtonPanel = new Panel(new Color(50, 50, 50), Color.BLACK, searchListPanel.getWidth(), searchListPanel.getY(), frame.getWidth() - searchListPanel.getWidth(), frame.getHeight() - titlePanel.getHeight(), false, null);
-        addButton = new Button("Hinzufügen", new Color(0x767676), Color.WHITE, 0, 0, 200, 100);
-        editButton = new Button("Bearbeiten", new Color(0x767676), Color.WHITE, 0, 100, 200, 100);
-        deleteButton = new Button("Entfernen", new Color(0x767676), Color.WHITE, 0, 200, 200, 100);
-        pokemonButton = new Button("Pokémon", new Color(0x767676), Color.WHITE, 0, 300, 200, 100);
-        importPokemonButton = new Button("Pokémon hinzufügen", new Color(0x767676), Color.WHITE, 0, 400, 200, 100);
-        logoutButton = new Button("Abmelden", new Color(0x767676), Color.WHITE, mainButtonPanel.getWidth() - 215, 0, 200, 100);
+        searchMenuPanel = new Panel(new Color(50, 50, 50), Color.BLACK, searchListPanel.getWidth(), searchListPanel.getY(), frame.getWidth() - searchListPanel.getWidth(), frame.getHeight() - titlePanel.getHeight(), false, null);
+        searchMenuPanel.setName("searchMenuPanel");
+        addSearchButton = new Button("Hinzufügen", new Color(0x767676), Color.WHITE, 0, 0, 200, 100);
+        editSearchButton = new Button("Bearbeiten", new Color(0x767676), Color.WHITE, 0, addSearchButton.getY() + 100, 200, 100);
+        deleteSearchButton = new Button("Entfernen", new Color(0x767676), Color.WHITE, 0, editSearchButton.getY() + 100, 200, 100);
+        pokemonButton = new Button("Pokémon", new Color(0x767676), Color.WHITE, 0, deleteSearchButton.getY() + 100,200, 100);
+        importPokemonButton = new Button("Pokémon hinzufügen", new Color(0x767676), Color.WHITE, 0, pokemonButton.getY() + 100, 200, 100);
         importPokemonButton.setVisible(false);
-        mainButtonPanel.add(addButton);
-        mainButtonPanel.add(editButton);
-        mainButtonPanel.add(deleteButton);
-        mainButtonPanel.add(pokemonButton);
-        mainButtonPanel.add(importPokemonButton);
-        mainButtonPanel.add(logoutButton);
+        searchMenuBackButton = new Button("Zurück", new Color(0x767676), Color.WHITE, searchMenuPanel.getWidth() - 215, 0, 200, 100);
+        searchMenuPanel.add(addSearchButton);
+        searchMenuPanel.add(editSearchButton);
+        searchMenuPanel.add(deleteSearchButton);
+        searchMenuPanel.add(pokemonButton);
+        searchMenuPanel.add(importPokemonButton);
+        searchMenuPanel.add(searchMenuBackButton);
+
 
 
 
         pokemonPanel = new Panel(new Color(50, 50, 50),Color.BLACK, 0, titlePanel.getHeight(), 300, frame.getHeight() - titlePanel.getHeight(), false, null);
-
+        pokemonPanel.setName("pokemonPanel");
 
         pokemonModel = new DefaultListModel<>();
         pokemonJList = new JList<>(pokemonModel);
@@ -372,17 +367,70 @@ public class UI implements Runnable{
         pokemonPanel.add(searchField);
         pokemonPanel.add(pokemonScrollPane);
 
-        pokemonButtonPanel = new Panel(new Color(50, 50, 50), Color.WHITE, 800, titlePanel.getHeight(), 200, frame.getHeight() - titlePanel.getHeight(), false, null);
-        backButton = new Button("Zurück", new Color(0x767676), Color.WHITE, 0, 0, 185, 100);
-        continueButton = new Button("Weiter", new Color(0x767676), Color.WHITE, 0, 100, 185, 100);
-        continueButton.setVisible(false);
-        completeButton = new Button("Fertig", new Color(0x767676), Color.WHITE, 0, 200, 185, 100);
-        completeButton.setVisible(false);
-        pokemonButtonPanel.add(backButton);
-        pokemonButtonPanel.add(continueButton);
-        pokemonButtonPanel.add(completeButton);
+        searchButtonPanel = new Panel(new Color(50, 50, 50), Color.WHITE, 800, titlePanel.getHeight(), 200, frame.getHeight() - titlePanel.getHeight(), false, null);
+        searchButtonPanel.setName("searchButtonPanel");
+        searchBackButton = new Button("Zurück", new Color(0x767676), Color.WHITE, 0, 0, 185, 100);
+        searchContinueButton = new Button("Weiter", new Color(0x767676), Color.WHITE, 0, 100, 185, 100);
+        searchContinueButton.setVisible(false);
+        searchCompleteButton = new Button("Fertig", new Color(0x767676), Color.WHITE, 0, 200, 185, 100);
+        searchCompleteButton.setVisible(false);
+        searchButtonPanel.add(searchBackButton);
+        searchButtonPanel.add(searchContinueButton);
+        searchButtonPanel.add(searchCompleteButton);
+        
+        checklistListPanel = new Panel(new Color(50, 50, 50), Color.BLACK, 0, titlePanel.getHeight(), 400, frame.getHeight() - titlePanel.getHeight(), false, null);
+        checklistListPanel.setName("checklistListPanel");
+        
+        checklistModel = new DefaultListModel<>();
+        checklistList = new JList<>(checklistModel);
+
+        checklistList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        checklistList.setBackground(new Color(50, 50, 50));
+        checklistList.setForeground(Color.WHITE);
+        checklistList.addMouseListener(new MouseListener() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                if (e.getClickCount() == 2 && searchStringList.getSelectedIndex() != -1) {
+
+                }
+            }
+
+            @Override
+            public void mousePressed(MouseEvent e) {
+            }
+
+            @Override
+            public void mouseReleased(MouseEvent e) {
+            }
+
+            @Override
+            public void mouseEntered(MouseEvent e) {
+            }
+
+            @Override
+            public void mouseExited(MouseEvent e) {
+            }
+        });
+
+        checklistListScrollPane = new JScrollPane(checklistList);
+        checklistListScrollPane.setBounds(0, 0, checklistListPanel.getWidth(), checklistListPanel.getHeight() - 40);
+        checklistListPanel.add(checklistListScrollPane);
+
+        
+        checklistMenuPanel = new Panel(new Color(50, 50, 50), Color.BLACK, checklistListPanel.getWidth(), checklistListPanel.getY(), frame.getWidth() - checklistListPanel.getWidth(), frame.getHeight() - titlePanel.getHeight(), false, null);
+        checklistMenuPanel.setName("checklistMenuPanel");
+        addChecklistButton = new Button("Hinzufügen", new Color(0x767676), Color.WHITE, 0, 0, 200, 100);
+        editChecklistButton = new Button("Bearbeiten", new Color(0x767676), Color.WHITE, 0, addChecklistButton.getY() + 100, 200, 100);
+        removeChecklistButton = new Button("Entfernen", new Color(0x767676), Color.WHITE, 0, editChecklistButton.getY() + 100, 200, 100);
+        checklistMenuBackButton = new Button("Zurück", new Color(0x767676), Color.WHITE, checklistMenuPanel.getWidth() - 215, 0, 200, 100);
+        checklistMenuPanel.add(addChecklistButton);
+        checklistMenuPanel.add(editChecklistButton);
+        checklistMenuPanel.add(removeChecklistButton);
+        checklistMenuPanel.add(checklistMenuBackButton);
+
 
         searchPreviewPanel = new Panel(new Color(50, 50, 50), Color.WHITE, pokemonPanel.getWidth() + 200, titlePanel.getHeight(), pokemonPanel.getWidth(), frame.getHeight() - titlePanel.getHeight(), false, null);
+        searchPreviewPanel.setName("searchPreviewPanel");
 
         searchPreviewModel = new DefaultListModel<>();
         searchPreviewList = new JList<>(searchPreviewModel);
@@ -472,6 +520,7 @@ public class UI implements Runnable{
         searchPreviewPanel.add(searchPreviewScrollPane, BorderLayout.CENTER);
 
         addPokemonPanel = new Panel(new Color(50, 50, 50), Color.WHITE, pokemonPanel.getWidth(), titlePanel.getHeight(), 200, frame.getHeight() - titlePanel.getHeight(), false, null);
+        addPokemonPanel.setName("addPokemonPanel");
         addPokemonButton = new Button("Hinzufügen", new Color(0x767676), Color.WHITE, 0, 250, 200, 100);
         removePokemonButton = new Button("Entfernen", new Color(0x767676), Color.WHITE, 0, 350, 200, 100);
         addPokemonPanel.add(addPokemonButton);
@@ -479,6 +528,7 @@ public class UI implements Runnable{
 
         Border blackline = BorderFactory.createMatteBorder(2, 2, 2, 2, Color.WHITE);
         addAttributePanel = new Panel(new Color(50, 50, 50),Color.BLACK, 275, titlePanel.getHeight(), 200, frame.getHeight() - titlePanel.getHeight(), false, null);
+        addAttributePanel.setName("addAttributePanel");
         addattributeLabel = new JLabel("Hinzufügen", SwingConstants.CENTER);
         addattributeLabel.setFont(new Font("Times New Roman", Font.BOLD, 20));
         addattributeLabel.setBounds(0, 0, addAttributePanel.getWidth(), 30);
@@ -503,6 +553,7 @@ public class UI implements Runnable{
 
 
         removeAttributePanel = new Panel(new Color(50, 50, 50),Color.BLACK, 475, titlePanel.getHeight(), 200, frame.getHeight() - titlePanel.getHeight(), false, null);
+        removeAttributePanel.setName("removeAttributePanel");
         removeattributeLabel = new JLabel("Entfernen", SwingConstants.CENTER);
         removeattributeLabel.setFont(new Font("Times New Roman", Font.BOLD, 20));
         removeattributeLabel.setBounds(0, 0, removeAttributePanel.getWidth(), 30);
@@ -533,13 +584,15 @@ public class UI implements Runnable{
 
 
 
-
-        frame.getContentPane().add(loginPanel);
         frame.getContentPane().add(titlePanel);
+        frame.getContentPane().add(loginPanel);
+        frame.getContentPane().add(mainMenuPanel);
         frame.getContentPane().add(searchListPanel);
-        frame.getContentPane().add(mainButtonPanel);
+        frame.getContentPane().add(checklistListPanel);
+        frame.getContentPane().add(checklistMenuPanel);
+        frame.getContentPane().add(searchMenuPanel);
         frame.getContentPane().add(pokemonPanel);
-        frame.getContentPane().add(pokemonButtonPanel);
+        frame.getContentPane().add(searchButtonPanel);
         frame.getContentPane().add(searchPreviewPanel);
         frame.getContentPane().add(addPokemonPanel);
         frame.getContentPane().add(addAttributePanel);
@@ -549,12 +602,31 @@ public class UI implements Runnable{
         frame.revalidate();
         frame.repaint();
 
+        Thread printPanels = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                while(true){
+                    printVisibleComponents();
+                    try {
+                        Thread.sleep(2000);
+                    } catch (InterruptedException e) {
+                        throw new RuntimeException(e);
+                    }
+                }
 
+            }
+        });
+        //printPanels.start();
 
+    }
 
-
-
-
+    static void printVisibleComponents() {
+        for(Component c: frame.getContentPane().getComponents()){
+            if(c.isVisible() ){
+                System.out.println(c.getName());
+            }
+        }
+        System.out.println();
     }
 
     static void importPokemon() {
@@ -579,8 +651,9 @@ public class UI implements Runnable{
 
     static void showLoginScreen() {
         loginPanel.setVisible(true);
-        searchListPanel.setVisible(false);
-        mainButtonPanel.setVisible(false);
+        //searchListPanel.setVisible(false);
+        //mainButtonPanel.setVisible(false);
+        mainMenuPanel.setVisible(false);
         titleLabel.setText("Login");
         usernameTextField.setText("");
         passwordTextField.setText("");
@@ -603,7 +676,6 @@ public class UI implements Runnable{
             }
             else{
                 JOptionPane.showMessageDialog(frame, "Account nicht gefunden");
-                return;
             }
             //statement.executeUpdate();
         } catch (SQLException e) {
@@ -642,6 +714,7 @@ public class UI implements Runnable{
             resultSet = statement.executeQuery();
             if(resultSet.next()){
                 activeUser = new User(resultSet.getString("username"), resultSet.getString("password"), resultSet.getString("status"));
+                testThread.start();
                 if(activeUser.getStatus().equals("admin")){
                     importPokemonButton.setVisible(true);
                 }
@@ -652,7 +725,36 @@ public class UI implements Runnable{
         }
     }
 
+
+    static void showSearchMenu() {
+        updateSearchList(activeUser.getUsername());
+        searchMenuPanel.setVisible(true);
+        searchListPanel.setVisible(true);
+        pokemonPanel.setVisible(false);
+        searchContinueButton.setVisible(false);
+        searchCompleteButton.setVisible(false);
+        searchButtonPanel.setVisible(false);
+        addPokemonPanel.setVisible(false);
+        searchPreviewPanel.setVisible(false);
+        pokemonScrollPane.getVerticalScrollBar().setValue(0);
+        searchPreviewScrollPane.getVerticalScrollBar().setValue(0);
+        searchListScrollPane.getVerticalScrollBar().setValue(0);
+        pokemonQuery = "select * from pokemon";
+        previewQuery = "";
+        searchField.setText("");
+        searchPreviewSearchField.setText("");
+
+        titleLabel.setText("Suche");
+
+    }
+
+    static void showChecklistMenu() {
+        checklistMenuPanel.setVisible(true);
+        checklistListPanel.setVisible(true);
+    }
+
     static void addPokemonToPreview() {
+
 
         if(pokemonModelSize - pokemonJList.getSelectedIndices().length == 0){
             pokemonQuery = "";
@@ -677,25 +779,9 @@ public class UI implements Runnable{
                     previewQuery += " or numberChar = ";
                 }
             }
-            /*pokemonQuery = "select * from pokemon where (numberChar != ";
-            previewQuery = "select * from pokemon where (numberChar = ";
-            for(int i = 0; i < searchPreviewModel.getSize(); i++){
-                pokemonQuery += searchPreviewModel.getElementAt(i).split("#")[1].split("\\)")[0];
-                pokemonQuery += " and numberChar != ";
 
-                previewQuery += searchPreviewModel.getElementAt(i).split("#")[1].split("\\)")[0];
-                previewQuery += " or numberChar = ";
-            }
-            for(int i = 0; i < pokemonJList.getSelectedIndices().length; i++){
-                pokemonQuery += pokemonModel.getElementAt(pokemonJList.getSelectedIndices()[i]).split("#")[1].split("\\)")[0];
-                previewQuery += pokemonModel.getElementAt(pokemonJList.getSelectedIndices()[i]).split("#")[1].split("\\)")[0];
-                if(i + 1 < pokemonJList.getSelectedIndices().length){
-                    pokemonQuery += " and numberChar != ";
-                    previewQuery += " or numberChar = ";
-                }
-            }
 
-             */
+
             pokemonQuery += ")";
             previewQuery += ")";
         }
@@ -703,11 +789,13 @@ public class UI implements Runnable{
 
         fillPokemonModel();
         fillPreviewModel();
-        pokemonModelSize = pokemonModel.getSize();
-        searchModelSize = searchPreviewModel.getSize();
+        pokemonModelSize = pokemonModel.getSize() - pokemonJList.getSelectedIndices().length;
+        searchModelSize = searchPreviewModel.getSize() + pokemonJList.getSelectedIndices().length;
+
     }
 
     static void removePokemonFromPreview(){
+
 
 
 
@@ -721,18 +809,24 @@ public class UI implements Runnable{
                 previewQuery += "where (numberChar = ";
             }
 
-            pokemonQuery = pokemonQuery.replace(")", "");
-            previewQuery = previewQuery.replace(")", "");
+            //pokemonQuery = pokemonQuery.replace(")", "");
+            //previewQuery = previewQuery.replace(")", "");
 
 
 
             for(int i = 0; i < searchPreviewList.getSelectedIndices().length; i++){
-                if(pokemonQuery.contains("and numberChar != " + searchPreviewModel.getElementAt(searchPreviewList.getSelectedIndices()[i]).split("#")[1].split("\\)")[0])){
-                    pokemonQuery = pokemonQuery.replace("and numberChar != " + searchPreviewModel.getElementAt(searchPreviewList.getSelectedIndices()[i]).split("#")[1].split("\\)")[0], "");
+                System.out.println(pokemonQuery);
+                if(pokemonQuery.contains("and numberChar != " + searchPreviewModel.getElementAt(searchPreviewList.getSelectedIndices()[i]).split("#")[1].split("\\)")[0] + " ")){
+                    pokemonQuery = pokemonQuery.replace("and numberChar != " + searchPreviewModel.getElementAt(searchPreviewList.getSelectedIndices()[i]).split("#")[1].split("\\)")[0] + " ", "");
+                    //System.out.println(pokemonQuery);
+                }
+                else if(pokemonQuery.contains("and numberChar != " + searchPreviewModel.getElementAt(searchPreviewList.getSelectedIndices()[i]).split("#")[1].split("\\)")[0] + ")")){
+                    pokemonQuery = pokemonQuery.replace("and numberChar != " + searchPreviewModel.getElementAt(searchPreviewList.getSelectedIndices()[i]).split("#")[1].split("\\)")[0] + ")", ")");
                 }
                 else{
-                    pokemonQuery = pokemonQuery.replace("numberChar != " + searchPreviewModel.getElementAt(searchPreviewList.getSelectedIndices()[i]).split("#")[1].split("\\)")[0], "");
+                    pokemonQuery = pokemonQuery.replace("numberChar != " + searchPreviewModel.getElementAt(searchPreviewList.getSelectedIndices()[i]).split("#")[1].split("\\)")[0] + " ", "");
                     try{
+                        System.out.println("Test");
                         pokemonQuery = pokemonQuery.replaceFirst("and", "");
                         pokemonQuery = pokemonQuery.replace("(  ", "(");
                     }
@@ -744,11 +838,14 @@ public class UI implements Runnable{
                     pokemonQuery = pokemonQuery.replace("  ", " ");
                 }
 
-                if(previewQuery.contains("or numberChar = " + searchPreviewModel.getElementAt(searchPreviewList.getSelectedIndices()[i]).split("#")[1].split("\\)")[0])){
-                    previewQuery = previewQuery.replace("or numberChar = " + searchPreviewModel.getElementAt(searchPreviewList.getSelectedIndices()[i]).split("#")[1].split("\\)")[0], "");
+                if(previewQuery.contains("or numberChar = " + searchPreviewModel.getElementAt(searchPreviewList.getSelectedIndices()[i]).split("#")[1].split("\\)")[0] + " ")){
+                    previewQuery = previewQuery.replace("or numberChar = " + searchPreviewModel.getElementAt(searchPreviewList.getSelectedIndices()[i]).split("#")[1].split("\\)")[0] + " ", "");
+                }
+                else if(previewQuery.contains("or numberChar = " + searchPreviewModel.getElementAt(searchPreviewList.getSelectedIndices()[i]).split("#")[1].split("\\)")[0] + ")")){
+                    previewQuery = previewQuery.replace("or numberChar = " + searchPreviewModel.getElementAt(searchPreviewList.getSelectedIndices()[i]).split("#")[1].split("\\)")[0] + ")", ")");
                 }
                 else{
-                    previewQuery = previewQuery.replace("numberChar = " + searchPreviewModel.getElementAt(searchPreviewList.getSelectedIndices()[i]).split("#")[1].split("\\)")[0], "");
+                    previewQuery = previewQuery.replace("numberChar = " + searchPreviewModel.getElementAt(searchPreviewList.getSelectedIndices()[i]).split("#")[1].split("\\)")[0] + " ", "");
                     try{
                         previewQuery = previewQuery.replaceFirst("or", "");
                         previewQuery = previewQuery.replace("(  ", "(");
@@ -766,7 +863,6 @@ public class UI implements Runnable{
             /*for(int i = 0; i < pokemonModel.getSize(); i++){
                 pokemonQuery += pokemonModel.getElementAt(i).split("#")[1].split("\\)")[0];
                 pokemonQuery += " or numberChar = ";
-
                 previewQuery += pokemonModel.getElementAt(i).split("#")[1].split("\\)")[0];
                 previewQuery += " and numberChar != ";
             }
@@ -778,21 +874,20 @@ public class UI implements Runnable{
                     previewQuery += " and numberChar != ";
                 }
             }
-
              */
             //pokemonQuery += searchPreviewModel.getElementAt(pokemonJList.getSelectedIndex()).split("#")[1].split("\\)")[0] + ")";
             //searchQuery += searchPreviewModel.getElementAt(pokemonJList.getSelectedIndex()).split("#")[1].split("\\)")[0] + ")";
-            pokemonQuery += ")";
-            previewQuery += ")";
+            //pokemonQuery += ")";
+            //previewQuery += ")";
 
 
         }
 
-
+        pokemonModelSize = pokemonModel.getSize() + searchPreviewList.getSelectedIndices().length;
+        searchModelSize = searchPreviewModel.getSize() - searchPreviewList.getSelectedIndices().length;
         fillPokemonModel();
         fillPreviewModel();
-        pokemonModelSize = pokemonModel.getSize();
-        searchModelSize = searchPreviewModel.getSize();
+
 
     }
 
@@ -804,6 +899,7 @@ public class UI implements Runnable{
             resultSet = statement.executeQuery();
             if(resultSet.next()){
                 String search = resultSet.getString("text");
+                System.out.println(search);
                 try{
                     Integer.parseInt(search.split(",")[0]);
                     queryAsNumber = true;
@@ -812,39 +908,54 @@ public class UI implements Runnable{
                     queryAsNumber = false;
                 }
                 editingTitle = resultSet.getString("title");
+
                 if(queryAsNumber){
                     pokemonQuery = "select * from pokemon where (numberChar != '" + search.replace(",", "' and numberChar != '");
                     pokemonQuery += "')";
-                    previewQuery = pokemonQuery.replace("and", "or");
-                    previewQuery = previewQuery.replace("!", "");
+                    previewQuery = pokemonQuery.replace("and", "or").replace("!", "");
                 }
                 else{
-                    pokemonQuery = "select * from pokemon where (name != '" + search.replace(",", "' and name != '");
-                    pokemonQuery += "')";
-                    previewQuery = pokemonQuery.replace("and", "or");
-                    previewQuery = previewQuery.replace("!", "");
+                    String query = "";
+                    query += "select numberChar from pokemon where (name = '" + search.replace(",", "' or name = '");
+                    query += "'" + ")";
+                    System.out.println(query);
+                    statement = connection.prepareStatement(query);
+                    ResultSet rs = statement.executeQuery();
+                    pokemonQuery = "select * from pokemon where (numberChar != ";
+                    ArrayList<String> data = new ArrayList<>();
+                    while(rs.next()){
+                        data.add(rs.getString("numberChar"));
+                    }
+                    for(int i = 0; i < data.size(); i++){
+                        pokemonQuery += data.get(i);
+                        if(i + 1 < data.size()){
+                            pokemonQuery += " and numberChar != ";
+                        }
+                    }
+                    pokemonQuery += ")";
+                    previewQuery = pokemonQuery.replace("and", "or").replace("!", "");
                 }
+
                 try{
                     pokemonQuery = pokemonQuery.replaceAll("'", "");
                     previewQuery = previewQuery.replaceAll("'", "");
-
                 }
                 catch(Exception e){
 
                 }
-
-
                 fillPokemonModel();
                 fillPreviewModel();
                 pokemonModelSize = pokemonModel.getSize();
                 searchModelSize = searchPreviewModel.getSize();
                 isEditing = true;
                 searchPreviewPanel.setVisible(true);
-                continueButton.setVisible(true);
-                completeButton.setVisible(true);
+                searchContinueButton.setVisible(true);
+                searchCompleteButton.setVisible(true);
                 addPokemonPanel.setVisible(true);
                 UI.titleLabel.setText("Wähle alle Pokemon aus, die zur Suche hinzugefügt werden sollen");
                 showPokemonScreen();
+
+
             }
 
         } catch (SQLException e) {
@@ -866,7 +977,7 @@ public class UI implements Runnable{
 
 
     static void showMainScreen() {
-        updateSearchList(activeUser.getUsername());
+        /*updateSearchList(activeUser.getUsername());
         titleLabel.setText("Hauptmenü");
         pokemonPanel.setVisible(false);
         continueButton.setVisible(false);
@@ -881,13 +992,17 @@ public class UI implements Runnable{
         searchListScrollPane.getVerticalScrollBar().setValue(0);
         pokemonQuery = "select * from pokemon";
         previewQuery = "";
+
+         */
+        titleLabel.setText("Hauptmenü");
+        mainMenuPanel.setVisible(true);
     }
 
     static void showPokemonScreen() {
         UI.searchListPanel.setVisible(false);
-        UI.mainButtonPanel.setVisible(false);
+        UI.searchMenuPanel.setVisible(false);
         UI.pokemonPanel.setVisible(true);
-        UI.pokemonButtonPanel.setVisible(true);
+        UI.searchButtonPanel.setVisible(true);
         fillPokemonModel();
     }
 
@@ -927,6 +1042,7 @@ public class UI implements Runnable{
                 }
 
             }
+            System.out.println(statement);
             resultSet = statement.executeQuery();
 
 
@@ -961,7 +1077,7 @@ public class UI implements Runnable{
                 }
 
             }
-
+            System.out.println(statement);
             resultSet = statement.executeQuery();
 
 
@@ -1057,7 +1173,8 @@ public class UI implements Runnable{
                 throw new RuntimeException(e);
             }
         }
-        showMainScreen();
+        //showMainScreen();
+        showSearchMenu();
 
 
     }
@@ -1066,7 +1183,7 @@ public class UI implements Runnable{
         try {
             statement = connection.prepareStatement("update checklist set content = CONCAT(content, ?) where username = ?");
             statement.setString(1, pokemon + ",");
-            statement.setString(2, "TheTobiTiger");
+            statement.setString(2, activeUser.getUsername());
             System.out.println(statement);
             statement.executeUpdate();
         } catch (SQLException e) {
