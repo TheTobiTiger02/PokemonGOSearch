@@ -12,19 +12,23 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.image.BufferedImage;
 import java.io.File;
-import java.io.IOException;
 import java.sql.*;
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.Arrays;
 import java.util.Scanner;
 
 public class UI implements Runnable{
 
 
     static Frame frame;
-    static JLabel usernameLabel, passwordLabel, titleLabel, addattributeLabel, removeattributeLabel;
-    static Panel loginPanel, searchListPanel, mainMenuPanel, searchMenuPanel, checklistMenuPanel, checklistListPanel, pokemonPanel, addPokemonPanel, searchButtonPanel, titlePanel, searchPreviewPanel, addAttributePanel, removeAttributePanel, nationalChecklistPanel, shinyChecklistPanel, luckyChecklistPanel, shadowChecklistPanel;
-    static Button loginButton, registerButton, searchButton, checkListButton, addSearchButton, editSearchButton, deleteSearchButton, searchMenuBackButton, importPokemonButton, logoutButton, checklistMenuBackButton, addChecklistButton, editChecklistButton, removeChecklistButton, addPokemonButton, removePokemonButton, searchBackButton, searchContinueButton, searchCompleteButton;
+    static JLabel usernameLabel, passwordLabel, addattributeLabel, removeattributeLabel;
+    static Panel loginPanel, searchListPanel, mainMenuPanel, searchMenuPanel, checklistMenuPanel, checklistListPanel,
+            pokemonPanel, addPokemonPanel, searchButtonPanel, searchPreviewPanel, addAttributePanel, removeAttributePanel,
+            nationalChecklistPanel, shinyChecklistPanel, luckyChecklistPanel, shadowChecklistPanel, checklistButtonPanel;
+    static Button loginButton, registerButton, searchButton, checkListButton, addSearchButton, editSearchButton, deleteSearchButton,
+            searchMenuBackButton, importPokemonButton, logoutButton, checklistMenuBackButton, addChecklistButton, editChecklistButton,
+            removeChecklistButton, addPokemonButton, removePokemonButton, searchBackButton, searchContinueButton, searchCompleteButton,
+            checklistBackButton, checklistCompleteButton;
     static DefaultListModel<String> searchModel, checklistModel, pokemonModel, searchPreviewModel;
     static JList<String> searchStringList, checklistList, pokemonJList, searchPreviewList;
     static boolean queryAsNumber;
@@ -33,29 +37,37 @@ public class UI implements Runnable{
     static JPasswordField passwordTextField;
     static JScrollPane pokemonScrollPane, searchListScrollPane, checklistListScrollPane, searchPreviewScrollPane, nationalChecklistScrollPane, shinyChecklistScrollPane, luckyChecklistScrollPane, shadowChecklistScrollPane;
 
+    static Color checkedColor = new Color(0x25be3d);
 
-    static ArrayList<String> pokemonList, attributes;
+
+    static ArrayList<String> attributes;
     static ArrayList<CheckBox> addAttributeCheckBoxes, removeAttributeCheckBoxes;
     static String pokemonQuery = "select * from pokemon";
     static String previewQuery = "";
-    static String editingTitle;
+    static String editingSearchTitle, editingChecklistTitle;
     static String pokemonFilter = "";
     static String previewFilter = "";
+    static String checklistType;
+    static ArrayList<String> checked;
 
     static int pokemonModelSize;
     static int searchModelSize = 0;
 
-    static boolean isAdding, isEditing;
+    static boolean isAdding, isEditingSearch, isEditingChecklist, nationalChecklistIsLoaded, shinyChecklistIsLoaded, luckyChecklistIsLoaded, shadowChecklistIsLoaded;
 
     static Thread testThread;
 
     static String currentState = "login";
+
+
+
 
     static Connection connection;
     static PreparedStatement statement;
     static ResultSet resultSet;
 
     static ArrayList<Button> nationalChecklistButtons, shinyChecklistButtons, luckyChecklistButtons, shadowChecklistButtons;
+    static ArrayList<Pokemon> pokemonList;
 
     static User activeUser;
 
@@ -78,17 +90,24 @@ public class UI implements Runnable{
 
 
 
-        frame = new Frame("PokemonGoSearch", new Color(50, 50, 50), 1800, 1000, true);
-        titlePanel = new Panel(Color.WHITE,Color.BLACK, 0, 0, frame.getWidth(), 50, true, null);
-        titlePanel.setName("TitlePanel");
-        titleLabel = new JLabel("Login");
-        titleLabel.setBounds(frame.getWidth() / 2, 0, 1000, 50);
-        titleLabel.setFont(new Font("Times New Roman", Font.BOLD, 20));
-        titleLabel.setForeground(Color.BLACK);
-        titlePanel.add(titleLabel, SwingConstants.CENTER);
 
-        
-        loginPanel = new Panel(new Color(50, 50, 50), Color.WHITE, 0, titlePanel.getHeight(), frame.getWidth(), frame.getHeight() - titlePanel.getHeight(), false, null);
+        frame = new Frame("PokemonGoSearch", new Color(50, 50, 50), 1800, 1000, true);
+
+        pokemonList = new ArrayList<>();
+
+        try {
+            statement = connection.prepareStatement("select * from pokemon");
+            resultSet = statement.executeQuery();
+            while(resultSet.next()){
+                pokemonList.add(new Pokemon(resultSet.getInt("number"), resultSet.getString("name"), resultSet.getBoolean("shiny"), resultSet.getBoolean("lucky"), resultSet.getBoolean("shadow"), resultSet.getString("title")));
+            }
+
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+
+
+        loginPanel = new Panel(new Color(50, 50, 50), Color.WHITE, 0, 0, frame.getWidth(), frame.getHeight(), false, null);
         loginPanel.setName("loginPanel");
 
         usernameTextField = new JTextField();
@@ -112,7 +131,7 @@ public class UI implements Runnable{
         loginPanel.add(usernameLabel);
         loginPanel.add(passwordLabel);
 
-        mainMenuPanel = new Panel(new Color(50, 50, 50), Color.WHITE, 0, titlePanel.getHeight(), frame.getWidth(), frame.getHeight() - titlePanel.getHeight(), false, null);
+        mainMenuPanel = new Panel(new Color(50, 50, 50), Color.WHITE, 0, 0, frame.getWidth(), frame.getHeight() , false, null);
         mainMenuPanel.setName("MainMenuPanel");
         searchButton = new Button("Suche", new Color(0x767676), Color.WHITE, (mainMenuPanel.getWidth() / 2) - 200, (mainMenuPanel.getHeight() / 2) - 200 , 200, 100);
         checkListButton = new Button("Checkliste", new Color(0x767676), Color.WHITE, searchButton.getX() + searchButton.getWidth(), searchButton.getY() , searchButton.getWidth(), searchButton.getHeight());
@@ -124,7 +143,7 @@ public class UI implements Runnable{
 
 
 
-        searchListPanel = new Panel(new Color(50, 50, 50),Color.BLACK, 0, titlePanel.getHeight(), 400, frame.getHeight() - titlePanel.getHeight(), false, null);
+        searchListPanel = new Panel(new Color(50, 50, 50),Color.BLACK, 0, 0, 400, frame.getHeight(), false, null);
         searchListPanel.setName("searchListPanel");
 
         //mainListPanel.add(addButton);
@@ -180,17 +199,18 @@ public class UI implements Runnable{
         searchListScrollPane = new JScrollPane(searchStringList);
         //searchListScrollPane.setBounds(0, 0, 400, 713);
         searchListScrollPane.setBounds(0, 0, searchListPanel.getWidth(), searchListPanel.getHeight() - 40);
+        searchListScrollPane.getViewport().setScrollMode(JViewport.BACKINGSTORE_SCROLL_MODE);
         //mainPanel.add(searchStringList);
         searchListPanel.add(searchListScrollPane);
         //mainListPanel.setBackground(new Color(50, 50, 50));
 
 
-        searchMenuPanel = new Panel(new Color(50, 50, 50), Color.BLACK, searchListPanel.getWidth(), searchListPanel.getY(), frame.getWidth() - searchListPanel.getWidth(), frame.getHeight() - titlePanel.getHeight(), false, null);
+        searchMenuPanel = new Panel(new Color(50, 50, 50), Color.BLACK, searchListPanel.getWidth(), searchListPanel.getY(), frame.getWidth() - searchListPanel.getWidth(), frame.getHeight(), false, null);
         searchMenuPanel.setName("searchMenuPanel");
         addSearchButton = new Button("Hinzufügen", new Color(0x767676), Color.WHITE, 0, 0, 200, 100);
         editSearchButton = new Button("Bearbeiten", new Color(0x767676), Color.WHITE, 0, addSearchButton.getY() + 100, 200, 100);
         deleteSearchButton = new Button("Entfernen", new Color(0x767676), Color.WHITE, 0, editSearchButton.getY() + 100, 200, 100);
-        importPokemonButton = new Button("Pokémon hinzufügen", new Color(0x767676), Color.WHITE, 0, editSearchButton.getY() + 100, 200, 100);
+        importPokemonButton = new Button("Pokémon hinzufügen", new Color(0x767676), Color.WHITE, 0, deleteSearchButton.getY() + 100, 200, 100);
         importPokemonButton.setVisible(false);
         searchMenuBackButton = new Button("Zurück", new Color(0x767676), Color.WHITE, searchMenuPanel.getWidth() - 215, 0, 200, 100);
         searchMenuPanel.add(addSearchButton);
@@ -202,7 +222,7 @@ public class UI implements Runnable{
 
 
 
-        pokemonPanel = new Panel(new Color(50, 50, 50),Color.BLACK, 0, titlePanel.getHeight(), 300, frame.getHeight() - titlePanel.getHeight(), false, null);
+        pokemonPanel = new Panel(new Color(50, 50, 50),Color.BLACK, 0, 0, 300, frame.getHeight(), false, null);
         pokemonPanel.setName("pokemonPanel");
 
         pokemonModel = new DefaultListModel<>();
@@ -227,7 +247,7 @@ public class UI implements Runnable{
             @Override
             public void mouseClicked(MouseEvent e) {
 
-                if (e.getClickCount() == 2 && (isAdding || isEditing)) {
+                if (e.getClickCount() == 2 ) {
                     addPokemonToPreview();
                 }
             }
@@ -246,7 +266,10 @@ public class UI implements Runnable{
 
 
         pokemonScrollPane = new JScrollPane(pokemonJList);
-        pokemonScrollPane.setBounds(0, 20, pokemonPanel.getWidth(), 693);
+        pokemonScrollPane.setBounds(0, 20, pokemonPanel.getWidth(), frame.getHeight() - 57);
+        pokemonScrollPane.getViewport().setScrollMode(JViewport.BACKINGSTORE_SCROLL_MODE);
+
+
 
 
 
@@ -289,18 +312,16 @@ public class UI implements Runnable{
         pokemonPanel.add(searchField);
         pokemonPanel.add(pokemonScrollPane);
 
-        searchButtonPanel = new Panel(new Color(50, 50, 50), Color.WHITE, 800, titlePanel.getHeight(), 200, frame.getHeight() - titlePanel.getHeight(), false, null);
+        searchButtonPanel = new Panel(new Color(50, 50, 50), Color.WHITE, 800, 0, 200, frame.getHeight(), false, null);
         searchButtonPanel.setName("searchButtonPanel");
         searchBackButton = new Button("Zurück", new Color(0x767676), Color.WHITE, 0, 0, 185, 100);
         searchContinueButton = new Button("Weiter", new Color(0x767676), Color.WHITE, 0, 100, 185, 100);
-        searchContinueButton.setVisible(false);
         searchCompleteButton = new Button("Fertig", new Color(0x767676), Color.WHITE, 0, 200, 185, 100);
-        searchCompleteButton.setVisible(false);
         searchButtonPanel.add(searchBackButton);
         searchButtonPanel.add(searchContinueButton);
         searchButtonPanel.add(searchCompleteButton);
         
-        checklistListPanel = new Panel(new Color(50, 50, 50), Color.BLACK, 0, titlePanel.getHeight(), 400, frame.getHeight() - titlePanel.getHeight(), false, null);
+        checklistListPanel = new Panel(new Color(50, 50, 50), Color.BLACK, 0, 0, 400, frame.getHeight() , false, null);
         checklistListPanel.setName("checklistListPanel");
         
         checklistModel = new DefaultListModel<>();
@@ -312,8 +333,8 @@ public class UI implements Runnable{
         checklistList.addMouseListener(new MouseListener() {
             @Override
             public void mouseClicked(MouseEvent e) {
-                if (e.getClickCount() == 2 && searchStringList.getSelectedIndex() != -1) {
-
+                if (e.getClickCount() == 2 && checklistList.getSelectedIndex() != -1) {
+                    editChecklist();
                 }
             }
 
@@ -336,10 +357,11 @@ public class UI implements Runnable{
 
         checklistListScrollPane = new JScrollPane(checklistList);
         checklistListScrollPane.setBounds(0, 0, checklistListPanel.getWidth(), checklistListPanel.getHeight() - 40);
+        checklistListScrollPane.getViewport().setScrollMode(JViewport.BACKINGSTORE_SCROLL_MODE);
         checklistListPanel.add(checklistListScrollPane);
 
         
-        checklistMenuPanel = new Panel(new Color(50, 50, 50), Color.BLACK, checklistListPanel.getWidth(), checklistListPanel.getY(), frame.getWidth() - checklistListPanel.getWidth(), frame.getHeight() - titlePanel.getHeight(), false, null);
+        checklistMenuPanel = new Panel(new Color(50, 50, 50), Color.BLACK, checklistListPanel.getWidth(), checklistListPanel.getY(), frame.getWidth() - checklistListPanel.getWidth(), frame.getHeight() , false, null);
         checklistMenuPanel.setName("checklistMenuPanel");
         addChecklistButton = new Button("Hinzufügen", new Color(0x767676), Color.WHITE, 0, 0, 200, 100);
         editChecklistButton = new Button("Bearbeiten", new Color(0x767676), Color.WHITE, 0, addChecklistButton.getY() + 100, 200, 100);
@@ -351,7 +373,7 @@ public class UI implements Runnable{
         checklistMenuPanel.add(checklistMenuBackButton);
 
 
-        searchPreviewPanel = new Panel(new Color(50, 50, 50), Color.WHITE, pokemonPanel.getWidth() + 200, titlePanel.getHeight(), pokemonPanel.getWidth(), frame.getHeight() - titlePanel.getHeight(), false, null);
+        searchPreviewPanel = new Panel(new Color(50, 50, 50), Color.WHITE, pokemonPanel.getWidth() + 200, 0, pokemonPanel.getWidth(), frame.getHeight() , false, null);
         searchPreviewPanel.setName("searchPreviewPanel");
 
         searchPreviewModel = new DefaultListModel<>();
@@ -393,7 +415,8 @@ public class UI implements Runnable{
 
 
         searchPreviewScrollPane = new JScrollPane(searchPreviewList);
-        searchPreviewScrollPane.setBounds(0, 20, searchPreviewPanel.getWidth(), 693);
+        searchPreviewScrollPane.setBounds(0, 20, searchPreviewPanel.getWidth(), frame.getHeight());
+        searchPreviewScrollPane.getViewport().setScrollMode(JViewport.BACKINGSTORE_SCROLL_MODE);
 
 
 
@@ -441,7 +464,7 @@ public class UI implements Runnable{
         searchPreviewPanel.add(searchPreviewSearchField, BorderLayout.NORTH);
         searchPreviewPanel.add(searchPreviewScrollPane, BorderLayout.CENTER);
 
-        addPokemonPanel = new Panel(new Color(50, 50, 50), Color.WHITE, pokemonPanel.getWidth(), titlePanel.getHeight(), 200, frame.getHeight() - titlePanel.getHeight(), false, null);
+        addPokemonPanel = new Panel(new Color(50, 50, 50), Color.WHITE, pokemonPanel.getWidth(),0, 200, frame.getHeight() , false, null);
         addPokemonPanel.setName("addPokemonPanel");
         addPokemonButton = new Button("Hinzufügen", new Color(0x767676), Color.WHITE, 0, 250, 200, 100);
         removePokemonButton = new Button("Entfernen", new Color(0x767676), Color.WHITE, 0, 350, 200, 100);
@@ -449,7 +472,7 @@ public class UI implements Runnable{
         addPokemonPanel.add(removePokemonButton);
 
         Border blackline = BorderFactory.createMatteBorder(2, 2, 2, 2, Color.WHITE);
-        addAttributePanel = new Panel(new Color(50, 50, 50),Color.BLACK, 275, titlePanel.getHeight(), 200, frame.getHeight() - titlePanel.getHeight(), false, null);
+        addAttributePanel = new Panel(new Color(50, 50, 50),Color.BLACK, 275, 0, 200, frame.getHeight(), false, null);
         addAttributePanel.setName("addAttributePanel");
         addattributeLabel = new JLabel("Hinzufügen", SwingConstants.CENTER);
         addattributeLabel.setFont(new Font("Times New Roman", Font.BOLD, 20));
@@ -474,7 +497,7 @@ public class UI implements Runnable{
         }
 
 
-        removeAttributePanel = new Panel(new Color(50, 50, 50),Color.BLACK, 475, titlePanel.getHeight(), 200, frame.getHeight() - titlePanel.getHeight(), false, null);
+        removeAttributePanel = new Panel(new Color(50, 50, 50),Color.BLACK, 475,0, 200, frame.getHeight() , false, null);
         removeAttributePanel.setName("removeAttributePanel");
         removeattributeLabel = new JLabel("Entfernen", SwingConstants.CENTER);
         removeattributeLabel.setFont(new Font("Times New Roman", Font.BOLD, 20));
@@ -499,126 +522,93 @@ public class UI implements Runnable{
             y += 20;
         }
 
-        nationalChecklistPanel = new Panel(new Color(50, 50, 50), Color.WHITE, 0, titlePanel.getHeight(), frame.getWidth() - 50, frame.getHeight() - 100, false, null);
-
-
+        nationalChecklistPanel = new Panel(new Color(50, 50, 50), Color.WHITE, 0,0, frame.getWidth() - 210, frame.getHeight() - 38, false, null);
         nationalChecklistButtons = new ArrayList<>();
 
-        testThread = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    PreparedStatement s = connection.prepareStatement("select number, name from pokemon");
-                    ResultSet r = s.executeQuery();
-
-                    int i = 0;
-                    while(r.next()){
-
-                        File imgFile = new File("Addressable Assets\\pm" + r.getString("number") + ".icon.png");
-                        BufferedImage img = ImageIO.read(imgFile);
-                        Image scaledImg = img.getScaledInstance(100, 100, Image.SCALE_SMOOTH);
-                        Icon icon = new ImageIcon(scaledImg);
-                        //Icon icon = new ImageIcon("Images\\pm" + resultSet.getString("number") + ".icon.png");
-
-                        Button button = new Button(r.getString("name"), Color.GRAY, Color.BLACK, 0, 0, 300, 200);
-                        button.setPreferredSize(new Dimension(100, 200));
-                        button.setFont(new Font("Times New Roman", Font.BOLD, 16));
-                        button.setVerticalAlignment(SwingConstants.BOTTOM);
-                        button.setVerticalTextPosition(SwingConstants.CENTER);
-                        button.setIcon(icon);
-                        nationalChecklistButtons.add(button);
-                        //checkListPanel.add(checkListButtons.get(i));
-                        nationalChecklistPanel.add(nationalChecklistButtons.get(i));
-                        i++;
-                    }
-
-                }
-                catch (SQLException e) {
-                }
-                catch (IOException e) {
-                }
-
-
-                try {
-                    PreparedStatement s = connection.prepareStatement("select * from checklist where username = ?");
-                    s.setString(1, activeUser.getUsername());
-                    ResultSet r = s.executeQuery();
-
-                    if(r.next()){
-                        String [] content = r.getString("content").split(",");
-                        for(String c : content){
-                            //nationalChecklistButtons.get(c).setBackground(Color.GREEN);
-                        }
-                    }
-                } catch (SQLException e) {
-
-                }
-
-
-            }
-        });
-        
 
         //System.out.println(checkListButtons.get(1).getIcon());
-        nationalChecklistPanel.setLayout(new GridLayout(0, 8));
+        nationalChecklistPanel.setLayout(new GridLayout(0, 9));
         nationalChecklistPanel.setName("nationalChecklistPanel");
         nationalChecklistScrollPane = new JScrollPane(nationalChecklistPanel);
         nationalChecklistScrollPane.setName("nationalChecklistScrollPane");
         nationalChecklistScrollPane.setVisible(false);
 
-        nationalChecklistScrollPane.setBounds(0, titlePanel.getHeight(), frame.getWidth() , frame.getHeight() - 100);
-
+        nationalChecklistScrollPane.setBounds(0, 0, nationalChecklistPanel.getWidth(), nationalChecklistPanel.getHeight());
         nationalChecklistScrollPane.getVerticalScrollBar().setUnitIncrement(20);
         nationalChecklistScrollPane.getViewport().setScrollMode(JViewport.BACKINGSTORE_SCROLL_MODE);
 
+        nationalChecklistScrollPane.setBorder(null);
+        nationalChecklistScrollPane.setViewportBorder(null);
+        nationalChecklistScrollPane.getVerticalScrollBar().setPreferredSize(new Dimension(0, 0));
 
-        shinyChecklistPanel = new Panel(new Color(50, 50, 50), Color.WHITE, 0, titlePanel.getHeight(), frame.getWidth() - 50, frame.getHeight() - 100, false, null);
+
+        shinyChecklistPanel = new Panel(new Color(50, 50, 50), Color.WHITE, nationalChecklistPanel.getX(), nationalChecklistPanel.getY(), nationalChecklistPanel.getWidth(), nationalChecklistPanel.getHeight(), false, null);
 
         shinyChecklistButtons = new ArrayList<>();
         
-        shinyChecklistPanel.setLayout(new GridLayout(0, 8));
+        shinyChecklistPanel.setLayout(new GridLayout(0, 9));
         shinyChecklistPanel.setName("shinyChecklistPanel");
         shinyChecklistScrollPane = new JScrollPane(shinyChecklistPanel);
         shinyChecklistScrollPane.setName("shinyChecklistScrollPane");
         shinyChecklistScrollPane.setVisible(false);
 
-        shinyChecklistScrollPane.setBounds(0, titlePanel.getHeight(), frame.getWidth() , frame.getHeight() - 100);
+        shinyChecklistScrollPane.setBounds(nationalChecklistPanel.getX(), nationalChecklistPanel.getY(), nationalChecklistPanel.getWidth(), nationalChecklistPanel.getHeight());
 
         shinyChecklistScrollPane.getVerticalScrollBar().setUnitIncrement(20);
         shinyChecklistScrollPane.getViewport().setScrollMode(JViewport.BACKINGSTORE_SCROLL_MODE);
+        shinyChecklistScrollPane.setBorder(null);
+        shinyChecklistScrollPane.setViewportBorder(null);
+        shinyChecklistScrollPane.getVerticalScrollBar().setPreferredSize(new Dimension(0, 0));
         
         
 
-        luckyChecklistPanel = new Panel(new Color(50, 50, 50), Color.WHITE, 0, titlePanel.getHeight(), frame.getWidth() - 50, frame.getHeight() - 100, false, null);
+        luckyChecklistPanel = new Panel(new Color(50, 50, 50), Color.WHITE, nationalChecklistPanel.getX(), nationalChecklistPanel.getY(), nationalChecklistPanel.getWidth(), nationalChecklistPanel.getHeight() , false, null);
+
 
         luckyChecklistButtons = new ArrayList<>();
 
-        luckyChecklistPanel.setLayout(new GridLayout(0, 8));
+        luckyChecklistPanel.setLayout(new GridLayout(0, 9));
         luckyChecklistPanel.setName("luckyChecklistPanel");
         luckyChecklistScrollPane = new JScrollPane(luckyChecklistPanel);
         luckyChecklistScrollPane.setName("luckyChecklistScrollPane");
         luckyChecklistScrollPane.setVisible(false);
 
-        luckyChecklistScrollPane.setBounds(0, titlePanel.getHeight(), frame.getWidth() , frame.getHeight() - 100);
+        luckyChecklistScrollPane.setBounds(nationalChecklistPanel.getX(), nationalChecklistPanel.getY(), nationalChecklistPanel.getWidth(), nationalChecklistPanel.getHeight());
 
         luckyChecklistScrollPane.getVerticalScrollBar().setUnitIncrement(20);
         luckyChecklistScrollPane.getViewport().setScrollMode(JViewport.BACKINGSTORE_SCROLL_MODE);
-        
+        luckyChecklistScrollPane.setBorder(null);
+        luckyChecklistScrollPane.setViewportBorder(null);
+        luckyChecklistScrollPane.getVerticalScrollBar().setPreferredSize(new Dimension(0, 0));
 
-        shadowChecklistPanel = new Panel(new Color(50, 50, 50), Color.WHITE, 0, titlePanel.getHeight(), frame.getWidth() - 50, frame.getHeight() - 100, false, null);
+
+
+        shadowChecklistPanel = new Panel(new Color(50, 50, 50), Color.WHITE, nationalChecklistPanel.getX(), nationalChecklistPanel.getY(), nationalChecklistPanel.getWidth(), nationalChecklistPanel.getHeight(), false, null);
 
         shadowChecklistButtons = new ArrayList<>();
 
-        shadowChecklistPanel.setLayout(new GridLayout(0, 8));
+        shadowChecklistPanel.setLayout(new GridLayout(0, 9));
         shadowChecklistPanel.setName("shadowChecklistPanel");
         shadowChecklistScrollPane = new JScrollPane(shadowChecklistPanel);
         shadowChecklistScrollPane.setName("shadowChecklistScrollPane");
         shadowChecklistScrollPane.setVisible(false);
 
-        shadowChecklistScrollPane.setBounds(0, titlePanel.getHeight(), frame.getWidth() , frame.getHeight() - 100);
+        shadowChecklistScrollPane.setBounds(nationalChecklistPanel.getX(), nationalChecklistPanel.getY(), nationalChecklistPanel.getWidth(), nationalChecklistPanel.getHeight());
 
         shadowChecklistScrollPane.getVerticalScrollBar().setUnitIncrement(20);
         shadowChecklistScrollPane.getViewport().setScrollMode(JViewport.BACKINGSTORE_SCROLL_MODE);
+        shadowChecklistScrollPane.setBorder(null);
+        shadowChecklistScrollPane.setViewportBorder(null);
+        shadowChecklistScrollPane.getVerticalScrollBar().setPreferredSize(new Dimension(0, 0));
+
+        initChecklists();
+
+        checklistButtonPanel = new Panel(new Color(50, 50, 50), Color.WHITE, nationalChecklistPanel.getWidth(), 0, frame.getWidth() - nationalChecklistPanel.getWidth(), frame.getHeight(), false, null);
+        checklistButtonPanel.setName("checklistButtonPanel");
+        checklistBackButton = new Button("Zurück", new Color(0x767676), Color.WHITE, 0, 0, 200, 100);
+        checklistCompleteButton = new Button("Fertig", new Color(0x767676), Color.WHITE, 0, checklistBackButton.getHeight(), 200, 100);
+        checklistButtonPanel.add(checklistBackButton);
+        checklistButtonPanel.add(checklistCompleteButton);
 
 
 
@@ -626,8 +616,6 @@ public class UI implements Runnable{
 
 
 
-
-        frame.getContentPane().add(titlePanel);
         frame.getContentPane().add(loginPanel);
         frame.getContentPane().add(mainMenuPanel);
         frame.getContentPane().add(searchListPanel);
@@ -644,12 +632,14 @@ public class UI implements Runnable{
         frame.getContentPane().add(shinyChecklistScrollPane);
         frame.getContentPane().add(luckyChecklistScrollPane);
         frame.getContentPane().add(shadowChecklistScrollPane);
+        frame.getContentPane().add(checklistButtonPanel);
 
         Thread printPanels = new Thread(new Runnable() {
             @Override
             public void run() {
                 while(true){
                     printVisibleComponents();
+                    //System.out.println(luckyChecklistPanel.getWidth());
                     try {
                         Thread.sleep(2000);
                     } catch (InterruptedException e) {
@@ -659,122 +649,229 @@ public class UI implements Runnable{
 
             }
         });
-        //printPanels.start();
+        printPanels.start();
 
         frame.revalidate();
         frame.repaint();
 
         showLoginScreen();
-        initChecklists();
-
-
 
     }
 
     static void initChecklists() {
-        Thread t = new Thread(new Runnable() {
+
+        Thread nationalChecklistThread = new Thread(new Runnable() {
             @Override
             public void run() {
+                PreparedStatement s;
+                ResultSet r;
+                int i;
+                File imgFile;
+                BufferedImage img;
+                Image scaledImg;
+                Icon icon;
                 try {
-                    PreparedStatement s = connection.prepareStatement("select number, name from pokemon");
-                    ResultSet r = s.executeQuery();
-
-                    int i = 0;
+                    s = connection.prepareStatement("select * from pokemon");
+                    r = s.executeQuery();
+                    i = 0;
                     while(r.next()){
 
-                        File imgFile = new File("Addressable Assets\\pm" + r.getString("number") + ".icon.png");
-                        BufferedImage img = ImageIO.read(imgFile);
-                        Image scaledImg = img.getScaledInstance(100, 100, Image.SCALE_SMOOTH);
-                        Icon icon = new ImageIcon(scaledImg);
+                        try{
+                            imgFile = new File("Addressable Assets\\" + r.getString("id") + ".icon.png");
+                            img = ImageIO.read(imgFile);
+                            scaledImg = img.getScaledInstance(100, 100, Image.SCALE_SMOOTH);
+                            icon = new ImageIcon(scaledImg);
+                        }
+                        catch(Exception e){
+                            continue;
+                        }
                         //Icon icon = new ImageIcon("Images\\pm" + resultSet.getString("number") + ".icon.png");
 
                         Button button = new Button(r.getString("name"), Color.GRAY, Color.BLACK, 0, 0, 300, 200);
-                        button.setPreferredSize(new Dimension(100, 200));
+                        button.setPreferredSize(new Dimension(150, 150));
                         button.setFont(new Font("Times New Roman", Font.BOLD, 16));
                         button.setVerticalAlignment(SwingConstants.BOTTOM);
-                        button.setVerticalTextPosition(SwingConstants.CENTER);
+                        button.setHorizontalAlignment(SwingConstants.CENTER);
+                        button.setVerticalTextPosition(SwingConstants.NORTH);
+                        button.setHorizontalTextPosition(SwingConstants.CENTER);
                         button.setIcon(icon);
                         nationalChecklistButtons.add(button);
                         //checkListPanel.add(checkListButtons.get(i));
                         nationalChecklistPanel.add(nationalChecklistButtons.get(i));
+                        System.out.println(nationalChecklistButtons.size());
                         i++;
                     }
+                }
+                catch (SQLException e) {
+                }
+
+
+
+                nationalChecklistIsLoaded = true;
+
+            }
+
+        });
+        nationalChecklistThread.start();
+
+        Thread shinyChecklistThread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                PreparedStatement s;
+                ResultSet r;
+                int i;
+                File imgFile;
+                BufferedImage img;
+                Image scaledImg;
+                Icon icon;
+
+                try {
                     s = connection.prepareStatement("select number, name from pokemon where shiny = true");
                     r = s.executeQuery();
 
                     i = 0;
                     while(r.next()){
-                        File imgFile = new File("Addressable Assets\\pm" + r.getString("number") + ".s.icon.png");
-                        BufferedImage img = ImageIO.read(imgFile);
-                        Image scaledImg = img.getScaledInstance(100, 100, Image.SCALE_SMOOTH);
-                        Icon icon = new ImageIcon(scaledImg);
+                        try{
+                            imgFile = new File("Addressable Assets\\pm" + r.getString("number") + ".s.icon.png");
+                            img = ImageIO.read(imgFile);
+                            scaledImg = img.getScaledInstance(100, 100, Image.SCALE_SMOOTH);
+                            icon = new ImageIcon(scaledImg);
+                        }
+                        catch(Exception e){
+                            continue;
+                        }
                         //Icon icon = new ImageIcon("Images\\pm" + resultSet.getString("number") + ".icon.png");
 
                         Button button = new Button(r.getString("name"), Color.GRAY, Color.BLACK, 0, 0, 300, 200);
-                        button.setPreferredSize(new Dimension(100, 200));
+                        button.setPreferredSize(new Dimension(150, 150));
                         button.setFont(new Font("Times New Roman", Font.BOLD, 16));
                         button.setVerticalAlignment(SwingConstants.BOTTOM);
-                        button.setVerticalTextPosition(SwingConstants.CENTER);
+                        button.setHorizontalAlignment(SwingConstants.CENTER);
+                        button.setVerticalTextPosition(SwingConstants.NORTH);
+                        button.setHorizontalTextPosition(SwingConstants.CENTER);
                         button.setIcon(icon);
                         shinyChecklistButtons.add(button);
                         //checkListPanel.add(checkListButtons.get(i));
-                        shinyChecklistPanel.add(nationalChecklistButtons.get(i));
+                        shinyChecklistPanel.add(shinyChecklistButtons.get(i));
                         i++;
                     }
+                }
+                catch (SQLException e) {
+                }
+
+                shinyChecklistIsLoaded = true;
+
+            }
+        });
+        shinyChecklistThread.start();
+
+        Thread luckyChecklistThread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                PreparedStatement s;
+                ResultSet r;
+                int i;
+                File imgFile;
+                BufferedImage img;
+                Image scaledImg;
+                Icon icon;
+                i = 0;
+                try {
                     s = connection.prepareStatement("select number, name from pokemon where lucky = true");
                     r = s.executeQuery();
 
-                    i = 0;
+
                     while(r.next()){
-                        File imgFile = new File("Addressable Assets\\pm" + r.getString("number") + ".icon.png");
-                        BufferedImage img = ImageIO.read(imgFile);
-                        Image scaledImg = img.getScaledInstance(100, 100, Image.SCALE_SMOOTH);
-                        Icon icon = new ImageIcon(scaledImg);
+                        try{
+                            imgFile = new File("Addressable Assets\\pm" + r.getString("number") + ".icon.png");
+                            img = ImageIO.read(imgFile);
+                            scaledImg = img.getScaledInstance(100, 100, Image.SCALE_SMOOTH);
+                            icon = new ImageIcon(scaledImg);
+                        }
+                        catch(Exception e){
+                            continue;
+                        }
+
                         //Icon icon = new ImageIcon("Images\\pm" + resultSet.getString("number") + ".icon.png");
 
                         Button button = new Button(r.getString("name"), Color.GRAY, Color.BLACK, 0, 0, 300, 200);
-                        button.setPreferredSize(new Dimension(100, 200));
+                        button.setPreferredSize(new Dimension(150, 150));
                         button.setFont(new Font("Times New Roman", Font.BOLD, 16));
                         button.setVerticalAlignment(SwingConstants.BOTTOM);
-                        button.setVerticalTextPosition(SwingConstants.CENTER);
+                        button.setHorizontalAlignment(SwingConstants.CENTER);
+                        button.setVerticalTextPosition(SwingConstants.NORTH);
+                        button.setHorizontalTextPosition(SwingConstants.CENTER);
                         button.setIcon(icon);
+                        //button.setVerticalTextPosition(SwingConstants.NORTH);
+                        //button.setHorizontalTextPosition(SwingConstants.TOP);
                         luckyChecklistButtons.add(button);
-                        //checkListPanel.add(checkListButtons.get(i));
-                        luckyChecklistPanel.add(nationalChecklistButtons.get(i));
+                        luckyChecklistPanel.add(luckyChecklistButtons.get(i));
+
                         i++;
+
                     }
+                }
+                catch (SQLException e) {
+                }
+
+                //luckyChecklistButtons.get(5).setVisible(false);
+                //luckyChecklistPanel.remove(luckyChecklistButtons.get(5));
+
+
+                luckyChecklistIsLoaded = true;
+            }
+        });
+        luckyChecklistThread.start();
+
+        Thread shadowChecklistThread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                PreparedStatement s;
+                ResultSet r;
+                int i;
+                File imgFile;
+                BufferedImage img;
+                Image scaledImg;
+                Icon icon;
+                try {
                     s = connection.prepareStatement("select number, name from pokemon where shadow = true");
                     r = s.executeQuery();
 
                     i = 0;
                     while(r.next()){
-                        File imgFile = new File("Addressable Assets\\pm" + r.getString("number") + ".icon.png");
-                        BufferedImage img = ImageIO.read(imgFile);
-                        Image scaledImg = img.getScaledInstance(100, 100, Image.SCALE_SMOOTH);
-                        Icon icon = new ImageIcon(scaledImg);
+                        try{
+                            imgFile = new File("Addressable Assets\\pm" + r.getString("number") + ".icon.png");
+                            img = ImageIO.read(imgFile);
+                            scaledImg = img.getScaledInstance(100, 100, Image.SCALE_SMOOTH);
+                            icon = new ImageIcon(scaledImg);
+                        }
+                        catch(Exception e){
+                            continue;
+                        }
+
                         //Icon icon = new ImageIcon("Images\\pm" + resultSet.getString("number") + ".icon.png");
 
                         Button button = new Button(r.getString("name"), Color.GRAY, Color.BLACK, 0, 0, 300, 200);
-                        button.setPreferredSize(new Dimension(100, 200));
+                        button.setPreferredSize(new Dimension(150, 150));
                         button.setFont(new Font("Times New Roman", Font.BOLD, 16));
                         button.setVerticalAlignment(SwingConstants.BOTTOM);
-                        button.setVerticalTextPosition(SwingConstants.CENTER);
+                        button.setHorizontalAlignment(SwingConstants.CENTER);
+                        button.setVerticalTextPosition(SwingConstants.NORTH);
+                        button.setHorizontalTextPosition(SwingConstants.CENTER);
                         button.setIcon(icon);
                         shadowChecklistButtons.add(button);
                         //checkListPanel.add(checkListButtons.get(i));
-                        shadowChecklistPanel.add(nationalChecklistButtons.get(i));
+                        shadowChecklistPanel.add(shadowChecklistButtons.get(i));
                         i++;
                     }
-
                 }
                 catch (SQLException e) {
                 }
-                catch (IOException e) {
-                }
-                System.out.println("Fertig");
+                shadowChecklistIsLoaded = true;
+
             }
         });
-        t.start();
+        shadowChecklistThread.start();
     }
 
     static void printVisibleComponents() {
@@ -784,6 +881,12 @@ public class UI implements Runnable{
             }
         }
         System.out.println();
+    }
+
+    static void hideComponents() {
+        for(Component c : frame.getContentPane().getComponents()){
+            c.setVisible(false);
+        }
     }
 
     static void importPokemon() {
@@ -798,7 +901,6 @@ public class UI implements Runnable{
                 statement.setString(1, line.split(",")[1]);
                 statement.setString(2, line.split(",")[0]);
                 statement.executeUpdate();
-
             }
         }
         catch(Exception e){
@@ -807,11 +909,11 @@ public class UI implements Runnable{
     }
 
     static void showLoginScreen() {
+        hideComponents();
         loginPanel.setVisible(true);
         //searchListPanel.setVisible(false);
         //mainButtonPanel.setVisible(false);
-        mainMenuPanel.setVisible(false);
-        titleLabel.setText("Login");
+        //mainMenuPanel.setVisible(false);
         usernameTextField.setText("");
         passwordTextField.setText("");
         currentState = "login";
@@ -823,13 +925,15 @@ public class UI implements Runnable{
             statement.setString(1, usernameTextField.getText());
             statement.setString(2, passwordTextField.getText());
             resultSet = statement.executeQuery();
+
             if(resultSet.next()){
                 JOptionPane.showMessageDialog(frame, "Willkommen " + resultSet.getString("username"));
                 activeUser = new User(resultSet.getString("username"), resultSet.getString("password"), resultSet.getString("status"));
                 if(activeUser.getStatus().equals("admin")){
                     importPokemonButton.setVisible(true);
                 }
-                loginPanel.setVisible(false);
+                //loginPanel.setVisible(false);
+                hideComponents();
                 showMainScreen();
             }
             else{
@@ -872,7 +976,7 @@ public class UI implements Runnable{
             resultSet = statement.executeQuery();
             if(resultSet.next()){
                 activeUser = new User(resultSet.getString("username"), resultSet.getString("password"), resultSet.getString("status"));
-                testThread.start();
+                //testThread.start();
                 if(activeUser.getStatus().equals("admin")){
                     importPokemonButton.setVisible(true);
                 }
@@ -885,15 +989,16 @@ public class UI implements Runnable{
 
 
     static void showSearchMenu() {
+        hideComponents();
         updateSearchList();
         searchMenuPanel.setVisible(true);
         searchListPanel.setVisible(true);
-        pokemonPanel.setVisible(false);
-        searchContinueButton.setVisible(false);
-        searchCompleteButton.setVisible(false);
-        searchButtonPanel.setVisible(false);
-        addPokemonPanel.setVisible(false);
-        searchPreviewPanel.setVisible(false);
+        //pokemonPanel.setVisible(false);
+        //searchContinueButton.setVisible(false);
+        //searchCompleteButton.setVisible(false);
+        //searchButtonPanel.setVisible(false);
+        //addPokemonPanel.setVisible(false);
+        //searchPreviewPanel.setVisible(false);
         pokemonScrollPane.getVerticalScrollBar().setValue(0);
         searchPreviewScrollPane.getVerticalScrollBar().setValue(0);
         searchListScrollPane.getVerticalScrollBar().setValue(0);
@@ -902,13 +1007,17 @@ public class UI implements Runnable{
         searchField.setText("");
         searchPreviewSearchField.setText("");
 
-        titleLabel.setText("Suche");
         currentState = "searchMenu";
 
     }
 
     static void showChecklistMenu() {
+        hideComponents();
         updateChecklistList();
+        nationalChecklistScrollPane.getVerticalScrollBar().setValue(0);
+        shinyChecklistScrollPane.getVerticalScrollBar().setValue(0);
+        luckyChecklistScrollPane.getVerticalScrollBar().setValue(0);
+        shadowChecklistScrollPane.getVerticalScrollBar().setValue(0);
         checklistMenuPanel.setVisible(true);
         checklistListPanel.setVisible(true);
         currentState = "checklistMenu";
@@ -916,7 +1025,7 @@ public class UI implements Runnable{
 
     static void addPokemonToPreview() {
 
-
+        System.out.println("Test");
         if(pokemonModelSize - pokemonJList.getSelectedIndices().length == 0){
             pokemonQuery = "";
             previewQuery = "select * from pokemon";
@@ -947,7 +1056,7 @@ public class UI implements Runnable{
             previewQuery += ")";
         }
 
-
+        System.out.println(pokemonQuery);
         fillPokemonModel();
         fillPreviewModel();
         pokemonModelSize = pokemonModel.getSize() - pokemonJList.getSelectedIndices().length;
@@ -1057,7 +1166,14 @@ public class UI implements Runnable{
             statement.setString(2, activeUser.getUsername());
             resultSet = statement.executeQuery();
             if(resultSet.next()){
+                editingSearchTitle = resultSet.getString("title");
                 String search = resultSet.getString("text");
+                if(search.equals("")){
+                    pokemonQuery = "select * from pokemon";
+                    previewQuery = "";
+                    showPokemonScreen();
+                    return;
+                }
                 try{
                     Integer.parseInt(search.split(",")[0]);
                     queryAsNumber = true;
@@ -1065,7 +1181,6 @@ public class UI implements Runnable{
                 catch(NumberFormatException nfe){
                     queryAsNumber = false;
                 }
-                editingTitle = resultSet.getString("title");
 
                 if(queryAsNumber){
                     pokemonQuery = "select * from pokemon where (numberChar != '" + search.replace(",", "' and numberChar != '");
@@ -1100,19 +1215,16 @@ public class UI implements Runnable{
                 catch(Exception e){
 
                 }
-                fillPokemonModel();
-                fillPreviewModel();
+                //fillPokemonModel();
+                //fillPreviewModel();
                 pokemonModelSize = pokemonModel.getSize();
                 searchModelSize = searchPreviewModel.getSize();
-                isEditing = true;
-                searchPreviewPanel.setVisible(true);
-                searchContinueButton.setVisible(true);
-                searchCompleteButton.setVisible(true);
-                addPokemonPanel.setVisible(true);
-                UI.titleLabel.setText("Wähle alle Pokemon aus, die zur Suche hinzugefügt werden sollen");
+                isEditingSearch = true;
+                //searchPreviewPanel.setVisible(true);
+                //searchContinueButton.setVisible(true);
+                //searchCompleteButton.setVisible(true);
+                //addPokemonPanel.setVisible(true);
                 showPokemonScreen();
-
-
             }
 
         } catch (SQLException e) {
@@ -1151,19 +1263,22 @@ public class UI implements Runnable{
         previewQuery = "";
 
          */
-        titleLabel.setText("Hauptmenü");
+        hideComponents();
         mainMenuPanel.setVisible(true);
         currentState = "mainMenu";
     }
 
     static void showPokemonScreen() {
-        UI.searchListPanel.setVisible(false);
-        UI.searchMenuPanel.setVisible(false);
-        UI.pokemonPanel.setVisible(true);
-        UI.searchButtonPanel.setVisible(true);
+        //searchListPanel.setVisible(false);
+        //searchMenuPanel.setVisible(false);
+        hideComponents();
+        pokemonPanel.setVisible(true);
+        searchButtonPanel.setVisible(true);
+        searchPreviewPanel.setVisible(true);
+        addPokemonPanel.setVisible(true);
         currentState = "search";
         fillPokemonModel();
-
+        fillPreviewModel();
     }
 
     static void updateSearchList(){
@@ -1180,19 +1295,7 @@ public class UI implements Runnable{
         }
     }
 
-    static void updateChecklistList() {
-        checklistModel.clear();
-        try {
-            statement = connection.prepareStatement("select * from checklist where username = ?");
-            statement.setString(1, activeUser.getUsername());
-            resultSet = statement.executeQuery();
-            while(resultSet.next()){
-                checklistModel.addElement(resultSet.getString("title"));
-            }
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
-    }
+
 
 
 
@@ -1284,33 +1387,31 @@ public class UI implements Runnable{
             }
         }
         String title;
-        if(isEditing){
+        if(isEditingSearch){
             int reply = JOptionPane.showConfirmDialog(frame, "Möchtest du den Titel der Suche ändern?", "Neuer Titel", JOptionPane.YES_NO_OPTION);
             if(reply == JOptionPane.YES_OPTION){
                 title = JOptionPane.showInputDialog(frame, "Neuer Titel");
             }
             else{
-                title = editingTitle;
+                title = editingSearchTitle;
             }
             try {
                 statement = connection.prepareStatement("update search set text = ?, title = ? where title = ? and username = ?");
                 statement.setString(1, search);
                 statement.setString(2, title);
-                statement.setString(3, editingTitle);
+                statement.setString(3, editingSearchTitle);
                 statement.setString(4, activeUser.getUsername());
                 statement.executeUpdate();
             } catch (SQLException e) {
-                throw new RuntimeException(e);
+                return;
             }
         }
         else {
-
-
             while (true) {
                 try{
                     title = JOptionPane.showInputDialog(frame, "Gib einen Titel für deine Suche ein");
                     if (title.equals("")) {
-                        JOptionPane.showMessageDialog(frame, "Du musst zuerst einen Titel hinzufügen");
+                        JOptionPane.showMessageDialog(frame, "Du musst zuerst einen Titel eingeben");
                         continue;
                     }
                 }
@@ -1348,7 +1449,6 @@ public class UI implements Runnable{
         //showMainScreen();
         showSearchMenu();
 
-
     }
 
     static void deleteChecklist() {
@@ -1362,6 +1462,219 @@ public class UI implements Runnable{
             throw new RuntimeException(e);
         }
     }
+
+    static void showChecklist() {
+        switch(currentState){
+            case "nationalChecklist":
+                nationalChecklistPanel.setVisible(true);
+                nationalChecklistScrollPane.setVisible(true);
+
+                //testThread.start();
+                break;
+            case "shinyChecklist":
+                shinyChecklistPanel.setVisible(true);
+                shinyChecklistScrollPane.setVisible(true);
+
+                break;
+            case "luckyChecklist":
+                luckyChecklistPanel.setVisible(true);
+                luckyChecklistScrollPane.setVisible(true);
+
+                //testThread.start();
+
+                Thread t = new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        Scanner sc = new Scanner(System.in);
+                        while(true){
+                            int number = sc.nextInt() - 1;
+                            luckyChecklistButtons.get(number).setBorder(BorderFactory.createLineBorder(Color.GREEN, 3));
+                            for(int i = 0; i < luckyChecklistButtons.size(); i++){
+                                if(i != number){
+                                    luckyChecklistButtons.get(i).setVisible(false);
+                                }
+                            }
+                            luckyChecklistScrollPane.getVerticalScrollBar().setValue((number / 11) * 150);
+                            //luckyChecklistButtons.get(number).setForeground(Color.GREEN);
+
+                        }
+                    }
+                });
+                //t.start();
+                break;
+            case "shadowChecklist":
+                shadowChecklistPanel.setVisible(true);
+                shadowChecklistScrollPane.setVisible(true);
+                break;
+            default:
+                return;
+        }
+        checklistListPanel.setVisible(false);
+        checklistMenuPanel.setVisible(false);
+        checklistButtonPanel.setVisible(true);
+    }
+
+    static void addChecklist(ArrayList<Button> checklist) {
+        String checked = "";
+        for(int i = 0; i < checklist.size(); i++){
+            if(checklist.get(i).getBackground() == checkedColor){
+                checked += checklist.get(i).getText();
+                if(i + 1 < checklist.size()){
+                    checked += ",";
+                }
+            }
+        }
+        checked = checked.substring(0, checked.length() - 1);
+        String title;
+        if(isEditingChecklist){
+            int reply = JOptionPane.showConfirmDialog(frame, "Möchtest du den Titel der Checkliste ändern?", "Neuer Titel?", JOptionPane.YES_NO_OPTION);
+            if(reply == JOptionPane.YES_OPTION){
+                title = JOptionPane.showInputDialog(frame, "Neuer Titel");
+            }
+            else{
+                title = editingChecklistTitle;
+            }
+            try {
+                statement = connection.prepareStatement("update checklist set content = ?, title = ? where title = ? and username = ?");
+                statement.setString(1, checked);
+                statement.setString(2, title);
+                statement.setString(3, editingChecklistTitle);
+                statement.setString(4, activeUser.getUsername());
+                statement.executeUpdate();
+                System.out.println(statement);
+            } catch (SQLException e) {
+                return;
+            }
+        }
+
+        else{
+            while(true) {
+                try {
+                    title = JOptionPane.showInputDialog(frame, "Gib einen Titel für diese Checkliste ein");
+                    if (title.equals("")) {
+                        JOptionPane.showMessageDialog(frame, "Du musst zuerst einen Titel eingeben");
+                        continue;
+                    }
+                }
+                catch(Exception e){
+                    return;
+                }
+
+                try{
+                    statement = connection.prepareStatement("select * from checklist where title = ? and username = ?");
+                    statement.setString(1, title);
+                    statement.setString(2, activeUser.getUsername());
+                    resultSet = statement.executeQuery();
+                    if (!resultSet.next()) {
+                        break;
+                    }
+                    JOptionPane.showMessageDialog(frame, "Du hast diesen Titel bereits verwendet");
+                }
+                catch (SQLException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+
+            try {
+
+                statement = connection.prepareStatement("insert into checklist(title,type,username, content)values(?,?,?,?)");
+                statement.setString(1, title);
+                statement.setString(2, checklistType);
+                statement.setString(3, activeUser.getUsername());
+                statement.setString(4, checked);
+                statement.executeUpdate();
+            } catch (SQLException e) {
+                throw new RuntimeException(e);
+            }
+        }
+        showChecklistMenu();
+    }
+
+    static void editChecklist() {
+        try {
+            statement = connection.prepareStatement("select * from checklist where title = ? and username = ?");
+            statement.setString(1, checklistModel.getElementAt(checklistList.getSelectedIndex()));
+            statement.setString(2, activeUser.getUsername());
+            resultSet = statement.executeQuery();
+            if(resultSet.next()){
+                checked = new ArrayList<>(Arrays.asList(resultSet.getString("content").split(",")));
+                editingChecklistTitle = resultSet.getString("title");
+                checklistType = resultSet.getString("type");
+                currentState = checklistType + "Checklist";
+                isEditingChecklist = true;
+                fillChecklist();
+                showChecklist();
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+
+    }
+
+    static void clearChecklists() {
+        for(Button b : nationalChecklistButtons){
+            b.setBackground(Color.GRAY);
+        }
+        for(Button b : shinyChecklistButtons){
+            b.setBackground(Color.GRAY);
+        }
+        for(Button b : luckyChecklistButtons){
+            b.setBackground(Color.GRAY);
+        }
+        for(Button b : shadowChecklistButtons){
+            b.setBackground(Color.GRAY);
+        }
+    }
+
+    static void fillChecklist() {
+        clearChecklists();
+        switch(checklistType){
+            case "national":
+                for(Button b : nationalChecklistButtons){
+                    if(checked.contains(b.getText())){
+                        b.setBackground(checkedColor);
+                    }
+                }
+                break;
+            case "shiny":
+                for(Button b : shinyChecklistButtons){
+                    if(checked.contains(b.getText())){
+                        b.setBackground(checkedColor);
+                    }
+                }
+                break;
+            case "lucky":
+                for(Button b : luckyChecklistButtons){
+                    if(checked.contains(b.getText())){
+                        b.setBackground(checkedColor);
+                    }
+                }
+                break;
+            case "shadow":
+                for(Button b : shadowChecklistButtons){
+                    if(checked.contains(b.getText())){
+                        b.setBackground(checkedColor);
+                    }
+                }
+                break;
+
+        }
+    }
+
+    static void updateChecklistList() {
+        checklistModel.clear();
+        try {
+            statement = connection.prepareStatement("select * from checklist where username = ?");
+            statement.setString(1, activeUser.getUsername());
+            resultSet = statement.executeQuery();
+            while(resultSet.next()){
+                checklistModel.addElement(resultSet.getString("title"));
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
 
     static void updateCheckList(String pokemon) {
         try {

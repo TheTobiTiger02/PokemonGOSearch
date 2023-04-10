@@ -3,8 +3,6 @@ import javax.swing.border.Border;
 import java.awt.*;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
-import java.util.Map;
-import java.util.Objects;
 
 
 public class Button extends JButton implements MouseListener {
@@ -89,24 +87,24 @@ public class Button extends JButton implements MouseListener {
                 }
             case "mainMenu":
                 if(e.getSource() == UI.searchButton){
-                    UI.mainMenuPanel.setVisible(false);
+                    //UI.hideComponents();
                     UI.showSearchMenu();
                     break;
                 }
                 if(e.getSource() == UI.checkListButton){
-                    UI.mainMenuPanel.setVisible(false);
+                    //UI.hideComponents();
                     UI.showChecklistMenu();
                     break;
                 }
                 if(e.getSource() == UI.logoutButton){
+                    //UI.hideComponents();
                     UI.showLoginScreen();
                     break;
                 }
             case "searchMenu":
                 if(e.getSource() == UI.addSearchButton){
-
                     Object[] options = {"Mit Nummer", "Mit Name"};
-                    int selectedOption = JOptionPane.showOptionDialog(null, "Wie soll die Suche generiert werden?", "Optionen", JOptionPane.DEFAULT_OPTION, JOptionPane.QUESTION_MESSAGE, null, options, options[0]);
+                    int selectedOption = JOptionPane.showOptionDialog(UI.frame, "Wie soll die Suche generiert werden?", "Optionen", JOptionPane.DEFAULT_OPTION, JOptionPane.QUESTION_MESSAGE, null, options, options[0]);
                     if (selectedOption == 0) {
                         UI.queryAsNumber = true;
                     }
@@ -118,14 +116,14 @@ public class Button extends JButton implements MouseListener {
                     }
                     UI.query = "";
                     UI.isAdding = true;
-                    UI.isEditing = false;
+                    UI.isEditingSearch = false;
                     UI.searchPreviewPanel.setVisible(true);
-                    UI.searchContinueButton.setVisible(true);
-                    UI.searchCompleteButton.setVisible(true);
-                    UI.addPokemonPanel.setVisible(true);
-                    UI.searchPreviewModel.clear();
-                    UI.titleLabel.setText("Wähle alle Pokemon aus, die zur Suche hinzugefügt werden sollen");
-                    UI.fillPreviewModel();
+                    //UI.searchContinueButton.setVisible(true);
+                    //UI.searchCompleteButton.setVisible(true);
+                    //UI.addPokemonPanel.setVisible(true);
+                    //UI.searchPreviewModel.clear();
+                    //UI.hideComponents();
+                    //UI.fillPreviewModel();
                     UI.showPokemonScreen();
                     break;
                 }
@@ -143,8 +141,8 @@ public class Button extends JButton implements MouseListener {
                     break;
                 }
                 if(e.getSource() == UI.searchMenuBackButton) {
-                    UI.searchMenuPanel.setVisible(false);
-                    UI.searchListPanel.setVisible(false);
+                    //UI.searchMenuPanel.setVisible(false);
+                    //UI.searchListPanel.setVisible(false);
                     UI.showMainScreen();
                     break;
                 }
@@ -158,9 +156,9 @@ public class Button extends JButton implements MouseListener {
                     break;
                 }
                 if(e.getSource() == UI.searchBackButton){
-                    UI.fillPokemonModel();
-                    UI.searchContinueButton.setVisible(false);
-                    UI.searchCompleteButton.setVisible(false);
+                    //UI.fillPokemonModel();
+                    //UI.searchContinueButton.setVisible(false);
+                    //UI.searchCompleteButton.setVisible(false);
                     UI.isAdding = false;
                     UI.showSearchMenu();
                     break;
@@ -182,9 +180,35 @@ public class Button extends JButton implements MouseListener {
                 }
             case "checklistMenu":
                 if(e.getSource() == UI.addChecklistButton){
+                    Object [] options = {"National", "Shiny", "Lucky", "Shadow"};
+                    int selectedOption = JOptionPane.showOptionDialog(UI.frame, "Was für eine Checkliste möchtest du erstellen", "Optionen", JOptionPane.DEFAULT_OPTION, JOptionPane.QUESTION_MESSAGE, null, options, options[0]);
+                    switch(selectedOption){
+                        case 0:
+                            UI.currentState = "nationalChecklist";
+                            UI.checklistType = "national";
+                            break;
+                        case 1:
+                            UI.currentState = "shinyChecklist";
+                            UI.checklistType = "shiny";
+                            break;
+                        case 2:
+                            UI.currentState = "luckyChecklist";
+                            UI.checklistType = "lucky";
+                            break;
+                        case 3:
+                            UI.currentState = "shadowChecklist";
+                            UI.checklistType = "shadow";
+                            break;
+                        default:
+                            break;
+                    }
+                    UI.isEditingChecklist = false;
+                    UI.clearChecklists();
+                    UI.showChecklist();
                     break;
                 }
                 if(e.getSource() == UI.editChecklistButton){
+                    UI.editChecklist();
                     break;
                 }
                 if(e.getSource() == UI.removeChecklistButton){
@@ -192,17 +216,28 @@ public class Button extends JButton implements MouseListener {
                     break; 
                 }
                 if(e.getSource() == UI.checklistMenuBackButton){
-                    UI.checklistMenuPanel.setVisible(false);
-                    UI.checklistListPanel.setVisible(false);
+                    //UI.checklistMenuPanel.setVisible(false);
+                    //UI.checklistListPanel.setVisible(false);
                     UI.showMainScreen();
                     break;
                 }
             case "nationalChecklist":
+                if(e.getSource() == UI.checklistBackButton){
+                    //UI.nationalChecklistPanel.setVisible(false);
+                    //UI.nationalChecklistScrollPane.setVisible(false);
+                    //UI.checklistButtonPanel.setVisible(false);
+                    UI.showChecklistMenu();
+                    break;
+                }
+                if(e.getSource() == UI.checklistCompleteButton){
+                    UI.addChecklist(UI.nationalChecklistButtons);
+                    break;
+                }
                 for(int i = 0; i < UI.nationalChecklistButtons.size(); i++){
                     if(e.getSource() == UI.nationalChecklistButtons.get(i)){
                         Color newColor;
                         if(UI.nationalChecklistButtons.get(i).getBackground() == Color.GRAY){
-                            newColor = Color.GREEN;
+                            newColor = UI.checkedColor;
                         }
                         else{
                             newColor = Color.GRAY;
@@ -212,11 +247,22 @@ public class Button extends JButton implements MouseListener {
                     }
                 }
             case "shinyChecklist":
+                if(e.getSource() == UI.checklistBackButton){
+                    //UI.shinyChecklistPanel.setVisible(false);
+                    //UI.shinyChecklistScrollPane.setVisible(false);
+                    //UI.checklistButtonPanel.setVisible(false);
+                    UI.showChecklistMenu();
+                    break;
+                }
+                if(e.getSource() == UI.checklistCompleteButton){
+                    UI.addChecklist(UI.shinyChecklistButtons);
+                    break;
+                }
                 for(int i = 0; i < UI.shinyChecklistButtons.size(); i++){
                     if(e.getSource() == UI.shinyChecklistButtons.get(i)){
                         Color newColor;
                         if(UI.shinyChecklistButtons.get(i).getBackground() == Color.GRAY){
-                            newColor = Color.GREEN;
+                            newColor = UI.checkedColor;
                         }
                         else{
                             newColor = Color.GRAY;
@@ -226,11 +272,22 @@ public class Button extends JButton implements MouseListener {
                     }
                 }
             case "luckyChecklist":
+                if(e.getSource() == UI.checklistBackButton){
+                    //UI.luckyChecklistPanel.setVisible(false);
+                    //UI.luckyChecklistScrollPane.setVisible(false);
+                    //UI.checklistButtonPanel.setVisible(false);
+                    UI.showChecklistMenu();
+                    break;
+                }
+                if(e.getSource() == UI.checklistCompleteButton){
+                    UI.addChecklist(UI.luckyChecklistButtons);
+                    break;
+                }
                 for(int i = 0; i < UI.luckyChecklistButtons.size(); i++){
                     if(e.getSource() == UI.luckyChecklistButtons.get(i)){
                         Color newColor;
                         if(UI.luckyChecklistButtons.get(i).getBackground() == Color.GRAY){
-                            newColor = Color.GREEN;
+                            newColor = UI.checkedColor;
                         }
                         else{
                             newColor = Color.GRAY;
@@ -240,11 +297,22 @@ public class Button extends JButton implements MouseListener {
                     }
                 }
             case "shadowChecklist":
+                if(e.getSource() == UI.checklistBackButton){
+                    //UI.shadowChecklistPanel.setVisible(false);
+                    //UI.shadowChecklistScrollPane.setVisible(false);
+                    //UI.checklistButtonPanel.setVisible(false);
+                    UI.showChecklistMenu();
+                    break;
+                }
+                if(e.getSource() == UI.checklistCompleteButton){
+                    UI.addChecklist(UI.shadowChecklistButtons);
+                    break;
+                }
                 for(int i = 0; i < UI.shadowChecklistButtons.size(); i++){
                     if(e.getSource() == UI.shadowChecklistButtons.get(i)){
                         Color newColor;
                         if(UI.shadowChecklistButtons.get(i).getBackground() == Color.GRAY){
-                            newColor = Color.GREEN;
+                            newColor = UI.checkedColor;
                         }
                         else{
                             newColor = Color.GRAY;
@@ -262,7 +330,7 @@ public class Button extends JButton implements MouseListener {
             if(e.getSource() == UI.nationalChecklistPanel.getComponent(i)){
                 Color newColor;
                 if(UI.nationalChecklistPanel.getComponent(i).getBackground() == Color.GRAY){
-                    newColor = Color.GREEN;
+                    newColor = UI.checkedColor;
                 }
 
                 else{
