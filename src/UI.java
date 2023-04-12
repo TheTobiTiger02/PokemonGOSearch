@@ -726,7 +726,7 @@ public class UI implements Runnable{
                 Icon icon;
 
                 try {
-                    s = connection.prepareStatement("select * from pokemon order by number,pokemonorder");
+                    s = connection.prepareStatement("select * from pokemon where shiny = true order by number,pokemonorder ");
                     r = s.executeQuery();
 
                     i = 0;
@@ -777,7 +777,7 @@ public class UI implements Runnable{
                 Icon icon;
                 i = 0;
                 try {
-                    s = connection.prepareStatement("select * from pokemon order by number,pokemonorder");
+                    s = connection.prepareStatement("select * from pokemon where lucky = true order by number,pokemonorder");
                     r = s.executeQuery();
 
 
@@ -794,7 +794,7 @@ public class UI implements Runnable{
 
                         //Icon icon = new ImageIcon("Images\\pm" + resultSet.getString("number") + ".icon.png");
 
-                        Button button = new Button(r.getString("title"), Color.GRAY, Color.BLACK, 0, 0, 300, 200);
+                        Button button = new Button(r.getString("name"), Color.GRAY, Color.BLACK, 0, 0, 300, 200);
                         button.setPreferredSize(new Dimension(150, 150));
                         button.setFont(new Font("Times New Roman", Font.BOLD, 16));
                         button.setVerticalAlignment(SwingConstants.BOTTOM);
@@ -834,7 +834,7 @@ public class UI implements Runnable{
                 Image scaledImg;
                 Icon icon;
                 try {
-                    s = connection.prepareStatement("select * from pokemon order by number,pokemonorder");
+                    s = connection.prepareStatement("select * from pokemon where shadow = true order by number,pokemonorder");
                     r = s.executeQuery();
 
                     i = 0;
