@@ -90,7 +90,6 @@ public class UI implements Runnable{
 
 
 
-
         frame = new Frame("PokemonGoSearch", new Color(50, 50, 50), 1800, 1000, true);
 
         pokemonList = new ArrayList<>();
@@ -671,7 +670,7 @@ public class UI implements Runnable{
                 Image scaledImg;
                 Icon icon;
                 try {
-                    s = connection.prepareStatement("select * from pokemon");
+                    s = connection.prepareStatement("select * from pokemon order by number,pokemonorder");
                     r = s.executeQuery();
                     i = 0;
                     while(r.next()){
@@ -683,11 +682,12 @@ public class UI implements Runnable{
                             icon = new ImageIcon(scaledImg);
                         }
                         catch(Exception e){
+                            System.out.println(r.getString("number"));
                             continue;
                         }
                         //Icon icon = new ImageIcon("Images\\pm" + resultSet.getString("number") + ".icon.png");
 
-                        Button button = new Button(r.getString("name"), Color.GRAY, Color.BLACK, 0, 0, 300, 200);
+                        Button button = new Button(r.getString("title"), Color.GRAY, Color.BLACK, 0, 0, 300, 200);
                         button.setPreferredSize(new Dimension(150, 150));
                         button.setFont(new Font("Times New Roman", Font.BOLD, 16));
                         button.setVerticalAlignment(SwingConstants.BOTTOM);
@@ -698,7 +698,7 @@ public class UI implements Runnable{
                         nationalChecklistButtons.add(button);
                         //checkListPanel.add(checkListButtons.get(i));
                         nationalChecklistPanel.add(nationalChecklistButtons.get(i));
-                        System.out.println(nationalChecklistButtons.size());
+
                         i++;
                     }
                 }
@@ -726,13 +726,13 @@ public class UI implements Runnable{
                 Icon icon;
 
                 try {
-                    s = connection.prepareStatement("select number, name from pokemon where shiny = true");
+                    s = connection.prepareStatement("select * from pokemon order by number,pokemonorder");
                     r = s.executeQuery();
 
                     i = 0;
                     while(r.next()){
                         try{
-                            imgFile = new File("Addressable Assets\\pm" + r.getString("number") + ".s.icon.png");
+                            imgFile = new File("Addressable Assets\\" + r.getString("id") + ".s.icon.png");
                             img = ImageIO.read(imgFile);
                             scaledImg = img.getScaledInstance(100, 100, Image.SCALE_SMOOTH);
                             icon = new ImageIcon(scaledImg);
@@ -742,7 +742,7 @@ public class UI implements Runnable{
                         }
                         //Icon icon = new ImageIcon("Images\\pm" + resultSet.getString("number") + ".icon.png");
 
-                        Button button = new Button(r.getString("name"), Color.GRAY, Color.BLACK, 0, 0, 300, 200);
+                        Button button = new Button(r.getString("title"), Color.GRAY, Color.BLACK, 0, 0, 300, 200);
                         button.setPreferredSize(new Dimension(150, 150));
                         button.setFont(new Font("Times New Roman", Font.BOLD, 16));
                         button.setVerticalAlignment(SwingConstants.BOTTOM);
@@ -777,13 +777,13 @@ public class UI implements Runnable{
                 Icon icon;
                 i = 0;
                 try {
-                    s = connection.prepareStatement("select number, name from pokemon where lucky = true");
+                    s = connection.prepareStatement("select * from pokemon order by number,pokemonorder");
                     r = s.executeQuery();
 
 
                     while(r.next()){
                         try{
-                            imgFile = new File("Addressable Assets\\pm" + r.getString("number") + ".icon.png");
+                            imgFile = new File("Addressable Assets\\" + r.getString("id") + ".icon.png");
                             img = ImageIO.read(imgFile);
                             scaledImg = img.getScaledInstance(100, 100, Image.SCALE_SMOOTH);
                             icon = new ImageIcon(scaledImg);
@@ -794,7 +794,7 @@ public class UI implements Runnable{
 
                         //Icon icon = new ImageIcon("Images\\pm" + resultSet.getString("number") + ".icon.png");
 
-                        Button button = new Button(r.getString("name"), Color.GRAY, Color.BLACK, 0, 0, 300, 200);
+                        Button button = new Button(r.getString("title"), Color.GRAY, Color.BLACK, 0, 0, 300, 200);
                         button.setPreferredSize(new Dimension(150, 150));
                         button.setFont(new Font("Times New Roman", Font.BOLD, 16));
                         button.setVerticalAlignment(SwingConstants.BOTTOM);
@@ -834,13 +834,13 @@ public class UI implements Runnable{
                 Image scaledImg;
                 Icon icon;
                 try {
-                    s = connection.prepareStatement("select number, name from pokemon where shadow = true");
+                    s = connection.prepareStatement("select * from pokemon order by number,pokemonorder");
                     r = s.executeQuery();
 
                     i = 0;
                     while(r.next()){
                         try{
-                            imgFile = new File("Addressable Assets\\pm" + r.getString("number") + ".icon.png");
+                            imgFile = new File("Addressable Assets\\" + r.getString("id") + ".icon.png");
                             img = ImageIO.read(imgFile);
                             scaledImg = img.getScaledInstance(100, 100, Image.SCALE_SMOOTH);
                             icon = new ImageIcon(scaledImg);
@@ -851,7 +851,7 @@ public class UI implements Runnable{
 
                         //Icon icon = new ImageIcon("Images\\pm" + resultSet.getString("number") + ".icon.png");
 
-                        Button button = new Button(r.getString("name"), Color.GRAY, Color.BLACK, 0, 0, 300, 200);
+                        Button button = new Button(r.getString("title"), Color.GRAY, Color.BLACK, 0, 0, 300, 200);
                         button.setPreferredSize(new Dimension(150, 150));
                         button.setFont(new Font("Times New Roman", Font.BOLD, 16));
                         button.setVerticalAlignment(SwingConstants.BOTTOM);
@@ -891,20 +891,37 @@ public class UI implements Runnable{
 
     static void importPokemon() {
         try{
-            File file = new File(JOptionPane.showInputDialog(frame, "Gib den Dateipfad zur Textdatei mit den zu importierenden Pokemon an. (Ein Pokemon pro Zeile im Format name,nummer,shiny,lucky,shadow)"));
-            System.out.println(file.getName());
+            File file = new File(JOptionPane.showInputDialog(frame, "Gib den Dateipfad zur Textdatei mit den zu importierenden Pokemon an. (Ein Pokemon pro Zeile im Format name,nummer,shiny,lucky,shadow,titel,region,form,kostüm)"));
             Scanner sc = new Scanner(file);
-            String line;
+            String [] line;
             while(sc.hasNextLine()){
-                line = sc.nextLine();
-                statement = connection.prepareStatement("insert into pokemon(number,numberChar,name)values(" + Integer.parseInt(line.split(",")[1]) + ",?,?)");
-                statement.setString(1, line.split(",")[1]);
-                statement.setString(2, line.split(",")[0]);
+                line = sc.nextLine().split(",");
+                statement = connection.prepareStatement("insert into pokemon(number,numberChar,name,shiny,lucky,shadow,title,region,form,costume)values(?,?,?,?,?,?,?,?,?,?)");
+                statement.setInt(1, Integer.parseInt(line[1]));
+                statement.setString(2, line[1]);
+                statement.setString(3, line[0]);
+                statement.setBoolean(4, Boolean.parseBoolean(line[2]));
+                statement.setBoolean(5, Boolean.parseBoolean(line[3]));
+                statement.setBoolean(6,Boolean.parseBoolean(line[4]));
+                statement.setString(7, line[5]);
+                statement.setString(8, line[6]);
+                if(line[7].equals("null")){
+                    statement.setString(9, null);
+                }
+                else{
+                    statement.setString(9, line[7]);
+                }
+                if(line[8].equals("null")){
+                    statement.setString(10, null);
+                }
+                else{
+                    statement.setString(10, line[8]);
+                }
                 statement.executeUpdate();
             }
         }
         catch(Exception e){
-            
+
         }
     }
 
@@ -1025,7 +1042,6 @@ public class UI implements Runnable{
 
     static void addPokemonToPreview() {
 
-        System.out.println("Test");
         if(pokemonModelSize - pokemonJList.getSelectedIndices().length == 0){
             pokemonQuery = "";
             previewQuery = "select * from pokemon";
@@ -1056,7 +1072,6 @@ public class UI implements Runnable{
             previewQuery += ")";
         }
 
-        System.out.println(pokemonQuery);
         fillPokemonModel();
         fillPreviewModel();
         pokemonModelSize = pokemonModel.getSize() - pokemonJList.getSelectedIndices().length;
@@ -1541,7 +1556,6 @@ public class UI implements Runnable{
                 statement.setString(3, editingChecklistTitle);
                 statement.setString(4, activeUser.getUsername());
                 statement.executeUpdate();
-                System.out.println(statement);
             } catch (SQLException e) {
                 return;
             }
