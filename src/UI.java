@@ -602,6 +602,8 @@ public class UI implements Runnable{
 
         initChecklists();
 
+
+
         checklistButtonPanel = new Panel(new Color(50, 50, 50), Color.WHITE, nationalChecklistPanel.getWidth(), 0, frame.getWidth() - nationalChecklistPanel.getWidth(), frame.getHeight(), false, null);
         checklistButtonPanel.setName("checklistButtonPanel");
         checklistBackButton = new Button("Zurück", new Color(0x767676), Color.WHITE, 0, 0, 200, 100);
@@ -698,8 +700,8 @@ public class UI implements Runnable{
                         nationalChecklistButtons.add(button);
                         //checkListPanel.add(checkListButtons.get(i));
                         nationalChecklistPanel.add(nationalChecklistButtons.get(i));
-
                         i++;
+
                     }
                 }
                 catch (SQLException e) {
@@ -707,7 +709,7 @@ public class UI implements Runnable{
 
 
 
-                nationalChecklistIsLoaded = true;
+
 
             }
 
@@ -759,7 +761,8 @@ public class UI implements Runnable{
                 catch (SQLException e) {
                 }
 
-                shinyChecklistIsLoaded = true;
+                frame.repaint();
+                frame.revalidate();
 
             }
         });
@@ -814,12 +817,13 @@ public class UI implements Runnable{
                 catch (SQLException e) {
                 }
 
+
                 //luckyChecklistButtons.get(5).setVisible(false);
                 //luckyChecklistPanel.remove(luckyChecklistButtons.get(5));
 
 
-                luckyChecklistIsLoaded = true;
-            }
+                frame.repaint();
+                frame.revalidate();            }
         });
         luckyChecklistThread.start();
 
@@ -867,8 +871,8 @@ public class UI implements Runnable{
                 }
                 catch (SQLException e) {
                 }
-                shadowChecklistIsLoaded = true;
-
+                frame.repaint();
+                frame.revalidate();
             }
         });
         shadowChecklistThread.start();
