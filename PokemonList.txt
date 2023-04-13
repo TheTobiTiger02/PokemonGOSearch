@@ -1,0 +1,75 @@
+Venusaur,3,false,false,false,Clone Venusaur,Kanto,COPY,null
+Charizard,6,false,false,false,Clone Charizard,Kanto,COPY,null
+Blastoise,9,false,false,false,Clone Blastoise,Kanto,COPY,null
+Rattata,19,true,false,false,Alolan Rattata,Alola,ALOLA,null
+Raticate,20,true,false,false,Alolan Raticate,Alola,ALOLA,null
+Pikachu,25,false,false,false,Clone Pikachu,Kanto,COPY,null
+Raichu,26,true,false,false,Alolan Raichu,Alola,ALOLA,null
+Sandshrew,27,true,false,false,Alolan Sandshrew,Alola,ALOLA,null
+Sandslash,28,true,false,false,Alolan Sandslash,Alola,ALOLA,null
+Vulpix,37,true,false,false,Alolan Vulpix,Alola,ALOLA,null
+Ninetales,38,true,false,false,Alolan Ninetales,Alola,ALOLA,null
+Diglett,50,true,false,false,Alolan Diglett,Alola,ALOLA,null
+Dugtrio,51,true,false,false,Alolan Dugtrio,Alola,ALOLA,null
+Meowth,52,true,false,false,Alolan Meowth,Alola,ALOLA,null
+Meowth,52,true,false,false,Galarian Meowth,Galar,GALARIAN,null
+Persian,53,true,false,false,Alolan Persian,Alola,ALOLA,null
+Growlithe,58,false,false,false,Hisuian Growlithe,Hisui,HISUIAN,null
+Arcanine,59,false,false,false,Hisuian Arcanine,Hisui,HISUIAN,null
+Geodude,74,true,false,false,Alolan Geodude,Alola,ALOLA,null
+Graveler,75,true,false,false,Alolan Graveler,Alola,ALOLA,null
+Golem,76,true,false,false,Alolan Golem,Alola,ALOLA,null
+Ponyta,77,true,false,false,Galarian Ponyta,Galar,GALARIAN,null
+Rapidash,78,true,false,false,Galarian Rapidash,Galar,GALARIAN,null
+Slowpoke,79,true,false,false,Galarian Slowpoke,Galar,GALARIAN,null
+Slowbro,80,true,false,false,Galarian Slowbro,Galar,GALARIAN,null
+Farfetch'd,83,true,false,false,Galarian Farfetch'd,Galar,GALARIAN,null
+Grimer,88,true,false,false,Alolan Grimer,Alola,ALOLA,null
+Muk,89,true,false,false,Alolan Muk,Alola,ALOLA,null
+Voltorb,100,false,false,false,Hisuian Voltorb,Hisui,HISUIAN,null
+Electrode,101,false,false,false,Hisuian Electrode,Hisui,HISUIAN,null
+Exeggutor,103,true,false,false,Alolan Exxegutor,Alola,ALOLA,null
+Marowak,105,true,false,false,Alolan Marowak,Alola,ALOLA,null
+Weezing,110,true,false,false,Galarian Weezing,Galar,GALARIAN,null
+Mr. Mime,122,true,false,false,Galarian Mr. Mime,Galar,GALARIAN,null
+Articuno,144,false,false,false,Galarian Articuno,Galar,GALARIAN,null
+Zapdos,145,false,false,false,Galarian Zapdos,Galar,GALARIAN,null
+Moltres,146,false,false,false,Galarian Moltres,Galar,GALARIAN,null
+Mewtwo,150,false,false,false,Armored Mewtwo,Kanto,A,null
+Slowking,199,true,false,false,Galarian Slowking,Galar,GALARIAN,null
+Qwilfish,211,false,false,false,Hisuian Qwilfish,Hisui,HISUIAN,null
+Sneasel,215,false,false,false,Hisuian Sneasel,Hisui,HISUIAN,null
+Zigzagoon,263,true,false,false,Galarian Zigzagoon,Galar,GALARIAN,null
+Linoone,264,true,false,false,Galarian Linoone,Galar,GALARIAN,null
+Castform,351,true,false,false,Sunny Castform,Hoenn,SUNNY,null
+Castform,351,true,false,false,Rainy Castform,Hoenn,RAINY,null
+Castform,351,true,false,false,Snowy Castform,Hoenn,SNOWY,null
+Deoxys,386,true,false,false,Defense Deoxys,Hoenn,DEFENSE,null
+Deoxys,386,true,false,false,Attack Deoxys,Hoenn,ATTACK,null
+Deoxys,386,true,false,false,Speed Deoxys,Hoenn,SPEED,null
+Rotom,479,false,true,false,Wash Rotom,Sinnoh,WASH,null
+Rotom,479,false,false,false,Mow Rotom,Sinnoh,MOW,null
+Darumaka,554,true,false,false,Galarian Darumaka,Galar,GALARIAN,null
+Darmanitan,555,true,false,false,Galarian Darmanitan,Galar,GALARIAN,null
+Yamask,562,true,false,false,Galarian Yamask,Galar,GALARIAN,null
+Stunfisk,618,true,false,false,Galarian Stunfisk,Galar,GALARIAN,null
+Braviary,628,true,false,false,Hisuian Braviary,Hisui,HISUIAN,null
+Genesect,649,false,false,false,Shock Genesect,Unova,SHOCK,null 
+Genesect,649,false,false,false,Burn Genesect,Unova,BURN,null 
+Genesect,649,false,false,false,Chill Genesect,Unova,CHILL,null 
+Genesect,649,false,false,false,Douse Genesect,Unova,DOUSE,null 
+Pumpkaboo,710,true,false,false,Small Pumpkaboo,Kalos,SMALL,null
+Pumpkaboo,710,true,false,false,Large Pumpkaboo,Kalos,LARGE,null
+Pumpkaboo,710,true,false,false,Super Pumpkaboo,Kalos,SUPER,null
+Gourgeist,711,true,false,false,Small Gourgeist,Kalos,SMALL,null
+Gourgeist,711,true,false,false,Large Gourgeist,Kalos,LARGE,null
+Gourgeist,711,true,false,false,Super Gourgeist,Kalos,SUPER,null
+Avalugg,713,true,false,false,Hisuian Avalugg,Hisui,HISUIAN,null
+Hoopa,720,false,false,false,Unbound Hoopa,Kalos,UNBOUND,null
+
+
+
+
+
+
+
